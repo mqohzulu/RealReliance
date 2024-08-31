@@ -36,6 +36,7 @@ import { InputTextareaModule } from 'primeng/inputtextarea';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { AuthenticationInterceptor } from './services/interceptor';
+import { TransactionDialogComponent } from './transaction-listing/transaction-dialog/transaction-dialog.component';
 
 
 
@@ -50,7 +51,8 @@ import { AuthenticationInterceptor } from './services/interceptor';
     PersonsListingComponent,
     PersonsDetailsComponent,
     TransactionListingComponent,
-    TransactionDetailsComponent
+    TransactionDetailsComponent,
+    TransactionDialogComponent
   ],
   imports: [
     BrowserModule,

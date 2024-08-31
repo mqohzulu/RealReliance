@@ -1,0 +1,36 @@
+<div class="p-fluid">
+    <div class="p-field">
+      <label for="transactionType"  *ngIf="editingTransaction.transactionId!==''">Transaction Date</label>
+      <p-calendar [showIcon]="true" dateFormat="dd/mm/yy" [style]="{width:'130px'}" id="transactionType"
+        [disabled]="editingTransaction.transactionId!==''" *ngIf="editingTransaction.transactionId!==''"
+        [(ngModel)]="date"></p-calendar>
+    </div>
+    <div class="p-field">
+      <label for="transactionType">Transaction Type</label>
+      <p-dropdown id="transactionType" [disabled]="editingTransaction.transactionId!==''" [options]="transactionTypes"
+        [(ngModel)]="editingTransaction.transactionType" placeholder="Select a type"></p-dropdown>
+    </div>
+    <div class="p-field">
+      <label for="transactionType">Account To</label>
+      <p-dropdown id="transactionType" [disabled]="editingTransaction.transactionId!==''" optionLabel="accountNumber"
+        [filter]="true" optionValue="accountNumber" [options]="accounts" [(ngModel)]="AccountTo"
+        placeholder="Select a type"></p-dropdown>
+    </div>
+    <div class="p-field">
+      <label for="amount">Amount</label>
+      <input id="amount" pInputText [disabled]="editingTransaction.transactionId!==''"
+        [(ngModel)]="editingTransaction.amount" mode="currency" currency="ZAR" locale="en-ZA" />
+    </div>
+    <br>
+    <div class="p-field">
+      <label for="description">Description</label>
+      <textarea id="description" [disabled]="editingTransaction.transactionId!==''" pInputTextarea
+        [(ngModel)]="editingTransaction.description" rows="3"></textarea>
+    </div>
+  </div>
+  <div class="col-12" style="text-align: center;">
+    <hr>
+    <p-button label="Save" severity="success" icon="pi pi-check" (onClick)="saveTransaction()"></p-button>&nbsp;&nbsp;
+    <p-button label="Cancel" icon="pi pi-times" (onClick)="hideDialog()" styleClass="p-button-text"></p-button>
+  
+  </div>

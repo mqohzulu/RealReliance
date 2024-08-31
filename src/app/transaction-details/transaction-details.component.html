@@ -1,1 +1,67 @@
-<p>transaction-details works!</p>
+<div class="card" style="margin: auto; width: 80%;">
+    <div class="page_heading">TRANSACTIONS LIST</div>
+    <p-table [value]="transactions">
+        <ng-template pTemplate="caption">
+            <div>
+                <div class="col-2">
+                    <p-button severity="success" (onClick)="addTransaction()" label="Add New Transaction"></p-button>&nbsp;
+                </div>
+                <div class="col-4" style="text-align: right;">
+                    <i class="pi pi-search"></i>&nbsp;
+                    <span class="p-input-icon-left ml-2">
+                        <input pInputText [(ngModel)]="searchTransaction" type="text" (input)="applyFilterGlobal($event, 'contains')" />
+                    </span>
+                </div>
+            </div>
+        </ng-template>
+        <ng-template pTemplate="header">
+            <tr>
+                <th></th>
+                <th pSortableColumn="TransactionId">
+                    <span>TransactionId</span>
+                    <p-sortIcon field="TransactionId"></p-sortIcon>
+                </th>
+                <th pSortableColumn="AccountId">
+                    <span>AccountId</span>
+                    <p-sortIcon field="AccountId"></p-sortIcon>
+                </th>
+                <th pSortableColumn="Amount">
+                    <span>Amount</span>
+                    <p-sortIcon field="Amount"></p-sortIcon>
+                </th>
+                <th pSortableColumn="TransactionType">
+                    <span>TransactionType</span>
+                    <p-sortIcon field="TransactionType"></p-sortIcon>
+                </th>
+                <th pSortableColumn="TransactionDate">
+                    <span>TransactionDate</span>
+                    <p-sortIcon field="TransactionDate"></p-sortIcon>
+                </th>
+                <th pSortableColumn="Description">
+                    <span>Description</span>
+                    <p-sortIcon field="Description"></p-sortIcon>
+                </th>
+                <th pSortableColumn="ActiveInd">
+                    <span>Active</span>
+                    <p-sortIcon field="ActiveInd"></p-sortIcon>
+                </th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-transaction>
+            <tr>
+                <td>
+                    <p-button severity="info" label="Edit" title="Edit transaction details" (onClick)="editTransaction(transaction)"></p-button>
+                </td>
+                <td>{{ transaction.TransactionId }}</td>
+                <td>{{ transaction.AccountId }}</td>
+                <td>{{ transaction.Amount }}</td>
+                <td>{{ transaction.TransactionType }}</td>
+                <td>{{ transaction.TransactionDate | date: 'yyyy-MM-dd' }}</td>
+                <td>{{ transaction.Description }}</td>
+                <td>
+                    <p-checkbox [binary]="true" [(ngModel)]="transaction.ActiveInd"></p-checkbox>
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>

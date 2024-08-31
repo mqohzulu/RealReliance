@@ -1,1 +1,54 @@
-<p>persons-details works!</p>
+<div class="container">
+    <div class="card-container">
+      <p-card class="p-card-custom">
+        <div class="p-fluid p-formgrid p-grid">
+          <div class="p-field p-col-12 p-md-6">
+            <label for="firstName">First Name</label>
+            <input id="firstName" type="text" pInputText [(ngModel)]="person.FirstName" required />
+          </div>
+          <br>
+          <div class="p-field p-col-12 p-md-6">
+            <label for="lastName">Last Name</label>
+            <input id="lastName" type="text" pInputText [(ngModel)]="person.LastName" required />
+          </div>
+          <br>
+          <div class="p-field p-col-12 p-md-6">
+            <label for="idNumber">ID Number</label>
+            <input id="idNumber" [disabled]="person.PersonId!==''" type="text" pInputText [(ngModel)]="person.IdNumber" required />
+          </div>
+          <br>
+          <div class="p-field p-col-12 p-md-6">
+            <label for="email">Email</label>
+            <input id="email" type="email" pInputText [(ngModel)]="person.Email" required />
+          </div>
+          <br>
+          <div class="p-field p-col-12 p-md-6">
+            <label for="phoneNumber">Phone Number</label>
+            <input id="phoneNumber" type="text" pInputText [(ngModel)]="person.PhoneNumber" required  />
+          </div>
+          <br>
+          <div class="p-field p-col-12 p-md-6">
+            <label for="dateOfBirth">Date of Birth</label>
+            <p-calendar id="dateOfBirth" [(ngModel)]="person.DateOfBirth" dateFormat="yy-mm-dd"></p-calendar>
+          </div>
+          <br>
+          <div class="p-field p-col-12 p-md-6">
+            <label for="activeInd">Active</label>&nbsp;
+            <p-checkbox id="activeInd" [(ngModel)]="person.ActiveInd" [binary]="true"></p-checkbox>
+          </div>
+          <hr>
+          <div class="p-field p-col-12">
+            <div class="button-group">
+              <button pButton icon="pi pi-save" class="p-button-success" type="button" label="Save" (click)="addNewPerson()"></button>
+              <button pButton icon="pi pi-arrow-circle-left" type="button" label="Back to List" (click)="navigateToDetails()"></button>
+            </div>
+          </div>         
+        </div>
+      </p-card>
+    </div>
+  
+    <div class="account-list-container" *ngIf="person.PersonId">
+      <app-accounts-listing [personID]="person.PersonId"></app-accounts-listing>
+    </div>
+  </div>
+  

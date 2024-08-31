@@ -1,1 +1,59 @@
-<p>accounts-listing works!</p>
+<div class="card" style="margin: auto; width: 80%;">
+    <div class="page_heading">ACCOUNTS LIST</div>
+    <p-table [value]="accounts">
+        <ng-template pTemplate="caption">
+            <div>
+                <div class="col-2">
+                    <p-button severity="success" (onClick)="addAccount(personID)" label="Add New Account"></p-button>&nbsp;
+                </div>
+                <div class="col-4" style="text-align: right;">
+                    <i class="pi pi-search"></i>&nbsp;
+                    <span class="p-input-icon-left ml-2">
+                        <input pInputText [(ngModel)]="searchAccount" type="text" (input)="applyFilterGlobal($event, 'contains')" />
+                    </span>
+                </div>
+            </div>
+        </ng-template>
+        <ng-template pTemplate="header">
+            <tr>
+                <th></th>
+                <th pSortableColumn="AccountNumber">
+                    <span>Account Number</span>
+                    <p-sortIcon field="AccountNumber"></p-sortIcon>
+                </th>
+                <th pSortableColumn="AccountType">
+                    <span>Account Type</span>
+                    <p-sortIcon field="AccountType"></p-sortIcon>
+                </th>
+                <th pSortableColumn="Balance">
+                    <span>Balance</span>
+                    <p-sortIcon field="Balance"></p-sortIcon>
+                </th>
+                <th pSortableColumn="IsClosed">
+                    <span>Is Closed</span>
+                    <p-sortIcon field="IsClosed"></p-sortIcon>
+                </th>
+                <th pSortableColumn="ActiveInd">
+                    <span>Active</span>
+                    <p-sortIcon field="ActiveInd"></p-sortIcon>
+                </th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-account>
+            <tr>
+                <td>
+                    <p-button severity="info" label="Edit" (onClick)="openEdit(account.accountID)" title="Edit account details"></p-button>
+                </td>
+                <td>{{ account.accountNumber }}</td>
+                <td>{{ account.accountType }}</td>
+                <td>{{ account.balance | currency:'ZAR':'symbol'}}</td>
+                <td>
+                    <p-checkbox [disabled]="true" [binary]="true" [(ngModel)]="account.IsClosed"></p-checkbox>
+                </td>
+                <td>
+                    <p-checkbox [disabled]="true" [binary]="true" [(ngModel)]="account.activeInd"></p-checkbox>
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
