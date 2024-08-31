@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { TransactionDialogComponent } from './transaction-dialog/transaction-dialog.component';
 import { ApiTransactionsService } from '../services/api-transactions.service';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
@@ -9,7 +9,7 @@ import { ApiAccountsService } from '../services/api-accounts.service';
   templateUrl: './transaction-listing.component.html',
   styleUrls: ['./transaction-listing.component.css']
 })
-export class TransactionListingComponent {
+export class TransactionListingComponent implements OnInit, OnChanges {
   transactionsList: any; 
   @Input() accountId: any; 
   @Output() refreshAccount= new EventEmitter<void>()

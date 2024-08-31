@@ -1,0 +1,20 @@
+<div class="container">
+    <h1>Banking System Overview</h1>
+    
+    <div class="chart-container">
+      <p-chart type="bar" [data]="chartData" [options]="chartOptions"></p-chart>
+    </div>
+  
+    <!-- You can add more content here, such as tables or additional charts -->
+    
+    <div class="summary">
+      <h2>Summary</h2>
+      <p *ngIf="chartData">
+        Total People: {{ chartData.datasets[0].data[0] }}<br>
+        Total Accounts: {{ chartData.datasets[0].data[1] }}<br>
+        Total Transactions: {{ chartData.datasets[0].data[2] }}<br>
+        Total Balance: {{ chartData.datasets[1].data[1] | currency }}<br>
+        Total Transaction Amount: {{ chartData.datasets[1].data[2] | currency }}
+      </p>
+    </div>
+  </div>

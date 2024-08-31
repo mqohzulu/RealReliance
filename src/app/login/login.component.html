@@ -1,1 +1,23 @@
-<p>login works!</p>
+<div *ngIf="!isAuthenticated">
+    <div class="login-container">
+        <p-card header="Login" [style]="{width:'400px'}">
+            <div class="field grid">
+                <label for="email" class="col-fixed" style="width:100px">Email</label>
+                <div class="col">
+                    <input id="email" style="width:360px" pInputText type="text" [(ngModel)]="email" />
+                </div>
+            </div>
+            <br>
+            <div class="field grid">
+                <label for="password" class="col-fixed" style="width:200px">Password</label>
+                <div class="col">
+                    <input id="password" style="width:360px" pInputText type="password" [(ngModel)]="password" />
+                </div>
+            </div>
+            <br>
+            <div style="text-align: center;">
+                <button pButton type="button" label="Login" (click)="login()"></button>
+            </div>
+        </p-card>
+    </div>
+</div>

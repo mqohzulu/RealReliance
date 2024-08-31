@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { Table } from 'primeng/table';
 import { Person } from '../interfaces/persons-models';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -10,7 +10,7 @@ import { ApiPersonService } from '../services/api-person.service';
   templateUrl: './persons-listing.component.html',
   styleUrls: ['./persons-listing.component.css']
 })
-export class PersonsListingComponent {
+export class PersonsListingComponent implements OnInit {
   personWithAccountCount: any;
   constructor(private router: Router, 
     private api: ApiPersonService, 

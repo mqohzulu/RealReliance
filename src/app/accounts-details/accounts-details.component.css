@@ -1,0 +1,27 @@
+.container {
+    display: flex;
+    gap: 3px; /* Adjust the gap between the card and the table as needed */
+  }
+  
+  .card-container {
+    flex: 1; /* Allows this container to take available space */
+    max-width: 30%; /* Limit the width of the card container */
+  }
+  
+  .transactions-list-container {
+    flex: 1; /* Allows this container to take available space */
+    max-width: 100%; /* Limit the width of the account list container */
+
+  }
+  .button-group {
+    display: flex; /* Align buttons side-by-side */
+    gap: 10px; /* Space between the buttons */
+    justify-content: flex-start; /* Align buttons to the left */
+  }
+  
+  .small-button {
+    font-size: 0.875rem; /* Adjust font size for smaller buttons */
+    padding: 0.5rem 1rem; /* Adjust padding for smaller buttons */
+  }
+  
+  

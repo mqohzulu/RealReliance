@@ -37,6 +37,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { AuthenticationInterceptor } from './services/interceptor';
 import { TransactionDialogComponent } from './transaction-listing/transaction-dialog/transaction-dialog.component';
+import { HomeComponent } from './home/home.component';
 
 
 
@@ -52,7 +53,8 @@ import { TransactionDialogComponent } from './transaction-listing/transaction-di
     PersonsDetailsComponent,
     TransactionListingComponent,
     TransactionDetailsComponent,
-    TransactionDialogComponent
+    TransactionDialogComponent,
+    HomeComponent
   ],
   imports: [
     BrowserModule,

@@ -9,11 +9,12 @@ import { PersonsListingComponent } from './persons-listing/persons-listing.compo
 import { AccountsDetailsComponent } from './accounts-details/accounts-details.component';
 import { TransactionDetailsComponent } from './transaction-details/transaction-details.component';
 import { AuthGuard } from './services/auth.guard';
+import { HomeComponent } from './home/home.component';
 
 const routes: Routes = [
 
   { path: 'login', component: LoginComponent },
-  //{ path: 'home', component: HomeComponent, canActivate:[AuthGuard]},
+  { path: 'home', component: HomeComponent, canActivate:[AuthGuard]},
   { path: 'about', component: AboutComponent, canActivate:[AuthGuard] },
   { path: 'contact', component: ContactsComponent, canActivate:[AuthGuard] },
   { path: 'person', component: PersonsDetailsComponent, canActivate:[AuthGuard] },
