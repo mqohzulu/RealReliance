@@ -1,7 +1,7 @@
 <div class="p-fluid">
     <div class="p-field">
       <label for="transactionType"  *ngIf="editingTransaction.transactionId!==''">Transaction Date</label>
-      <p-calendar [showIcon]="true" dateFormat="dd/mm/yy" [style]="{width:'130px'}" id="transactionType"
+      <p-calendar [showIcon]="true" dateFormat="dd/mm/yy" [style]="{width:'170px'}" id="transactionType"
         [disabled]="editingTransaction.transactionId!==''" *ngIf="editingTransaction.transactionId!==''"
         [(ngModel)]="date"></p-calendar>
     </div>

@@ -66,7 +66,7 @@ export class ApiAccountsService {
   }
   createAccount(command: CreateAccountCommand): Observable<any> {
     return new Observable(observer => {
-      this.api.get<any>('Accounts/CreateAccount', command).subscribe({
+      this.api.post<any>('Accounts/CreateAccount', command).subscribe({
         next: (response: any) => {
           observer.next(response);
           observer.complete();
@@ -74,7 +74,7 @@ export class ApiAccountsService {
         error: (error: any) => {
           this.messageService.add({
             severity: 'error',
-            summary: 'Error getting accounts',
+            summary: 'Error creating account',
             detail: error.error
           });
           observer.error(error);

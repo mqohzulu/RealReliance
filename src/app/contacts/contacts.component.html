@@ -1,1 +1,32 @@
-<p>contacts works!</p>
+<div class="container">
+    <h2>Contact Us</h2>
+    <div class="contact-info">
+      <p><strong>Address:</strong> 123 Main Street, Cityville, State 12345, Country</p>
+      <p><strong>Email:</strong> info&#64;example.com</p>
+      <p><strong>Phone:</strong> +1 234 567 8900</p>
+      <p><a href="https://maps.google.com" target="_blank">View us on map</a></p>
+    </div>
+    
+    <form [formGroup]="contactForm" (ngSubmit)="onSubmit()">
+      <div class="p-fluid p-formgrid p-grid">
+        <div class="p-field p-col-12 p-md-6">
+          <label for="name">Name</label>
+          <input id="name" type="text" pInputText formControlName="name" required />
+        </div>
+        
+        <div class="p-field p-col-12 p-md-6">
+          <label for="email">Email</label>
+          <input id="email" type="email" pInputText formControlName="email" required />
+        </div>
+        
+        <div class="p-field p-col-12">
+          <label for="message">Message</label>
+          <textarea id="message" rows="5" pInputTextarea formControlName="message" required></textarea>
+        </div>
+        
+        <div class="p-col-12">
+          <button pButton type="submit" label="Submit" [disabled]="!contactForm.valid"></button>
+        </div>
+      </div>
+    </form>
+  </div>

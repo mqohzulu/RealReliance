@@ -12,11 +12,12 @@ import { ApiAccountsService } from '../services/api-accounts.service';
 export class AccountsDetailsComponent {
   accountID: any;
   personID: any;
-  createdAccountId: string='';
+  createdAccountId: string = '';
   constructor(private messageService: MessageService,
     private router: Router,
-     private activateRoutes: ActivatedRoute, 
-     private apiAccount: ApiAccountsService) { }
+    private activateRoutes: ActivatedRoute,
+    private apiAccount: ApiAccountsService) { }
+
   public account: Account = {
     accountID: "",
     accountNumber: "",
@@ -29,7 +30,7 @@ export class AccountsDetailsComponent {
 
   public accountTypes: any[] = [
     { label: 'Checking', value: 'Checking' },
-    { label: 'Savings', value: 'Savings' }   
+    { label: 'Savings', value: 'Savings' }
   ];
 
 
@@ -45,7 +46,7 @@ export class AccountsDetailsComponent {
   }
 
   getAccountDetailsbyId() {
-    if(!this.accountID){
+    if (!this.accountID) {
       return;
     }
     this.apiAccount.getAccountById(this.accountID).subscribe({
@@ -57,22 +58,22 @@ export class AccountsDetailsComponent {
   }
 
   navigateToDetails() {
-    this.router.navigate(['/person-details'], { queryParams: {person_id: this.personID} });
-    
-  }
-  updateAccount() {
-  const command: CreateAccountCommand ={
-    PersonId : this.personID,
-    AccountNumber: this.account.accountNumber,
-    AccountType:this.account.accountType,
-    Balance: this.account.balance,
-    IsClosed:true,
-    ActiveInd:this.account.activeInd
+    this.router.navigate(['/person-details'], { queryParams: { person_id: this.personID } });
 
   }
+  updateAccount() {
+    const command: CreateAccountCommand = {
+      PersonId: this.personID,
+      AccountNumber: this.account.accountNumber,
+      AccountType: this.account.accountType,
+      Balance: this.account.balance,
+      IsClosed: false,
+      ActiveInd: this.account.activeInd
+    }
     this.apiAccount.createAccount(command).subscribe({
-      next:(data:string)=>{
+      next: (data: string) => {
         this.createdAccountId = data;
+        this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Account Successfully created' });
         this.refresh();
       }
     })

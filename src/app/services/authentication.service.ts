@@ -40,25 +40,15 @@ export class AuthenticationService {
       };
   
       const url = `${this.apiUrl}/Authentication/login`;
-      console.log('Attempting login to:', url);
-      console.log('Login data:', data);
-  
       this.http.post(url, data).pipe(
         tap(response => console.log('Login response:', response)),
         catchError((error: HttpErrorResponse) => {
-          console.error('Login error:', error);
-          console.log('Error details:', {
-            error: error.error,
-            name: error.name,
-            message: error.message,
-            status: error.status,
-            statusText: error.statusText,
-            url: error.url
-          });
   
           let errorMessage = 'An unknown error occurred';
           if (error.error instanceof ErrorEvent) {
             errorMessage = `Client-side error: ${error.error.message}`;
+          }else if(error.status == 401){
+            errorMessage =`Incorrect Username or Password `;
           } else {
             errorMessage = `Server-side error: ${error.status} ${error.statusText}`;
             if (error.status === 0) {
@@ -77,20 +67,17 @@ export class AuthenticationService {
       ).subscribe({
         next: (response: any) => {
           if (response) {
-            console.log("Successful login response:", response);
             this.saveToken(response.token);
             this.saveUser(response.email, response.firstName, response.lastname, response.role);
             this.isAuthenticated();
             this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Logged in successfully' });
             observer.next(response);
           } else {
-            console.log("Null response received");
             observer.next(null);
           }
           observer.complete();
         },
         error: (error) => {
-          console.error("Error in subscribe error handler:", error);
           observer.error(error);
         }
       });
