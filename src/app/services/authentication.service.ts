@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { BehaviorSubject, catchError, Observable, tap, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, Observable, switchMap, tap, throwError } from 'rxjs';
 import { LocalStorageService } from './local-storage.service';
 import { MessageService } from 'primeng/api';
 import { Router } from '@angular/router';
@@ -67,7 +67,7 @@ export class AuthenticationService {
       ).subscribe({
         next: (response: any) => {
           if (response) {
-            this.saveToken(response.token);
+            this.saveToken(response.token.trim());
             this.saveUser(response.email, response.firstName, response.lastname, response.role);
             this.isAuthenticated();
             this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Logged in successfully' });
@@ -85,7 +85,7 @@ export class AuthenticationService {
   }
 
   saveToken(token: string): void {
-    this.localStorageService.setItem(this.tokenKey, token);
+    this.localStorageService.setItem(this.tokenKey,token);
   }
 
   saveUser(email: string, firstName: string, lastName: string, role: string): void {
@@ -145,5 +145,56 @@ export class AuthenticationService {
     this.authChannel.onmessage = (event) => {
       callback(event.data);
     };
+  }
+
+  register(email: string, password: string,firstName:string ,lastName:string, role: string): Observable<any> {
+    return new Observable(observer => {
+      const data = {
+        Email: email,
+        Password: password,
+        FirstName: firstName,
+        LastName: lastName,
+        Role: role
+      };
+      const url = `${this.apiUrl}/Authentication/register`;
+      this.http.post(url, data).pipe(
+        tap(response => console.log('Registration response:', response)),
+        switchMap(() => this.login(email, password)),  // Call login after successful registration
+        catchError((error: HttpErrorResponse) => {
+          let errorMessage = 'An unknown error occurred';
+          if (error.error instanceof ErrorEvent) {
+            errorMessage = `Client-side error: ${error.error.message}`;
+          } else if (error.status === 409) {
+            errorMessage = 'An account with this email already exists.';
+          } else {
+            errorMessage = `Server-side error: ${error.status} ${error.statusText}`;
+            if (error.status === 0) {
+              errorMessage += '\nPossible causes: Server is down, Network issue, or CORS problem';
+            }
+          }
+
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Registration Failed',
+            detail: errorMessage
+          });
+
+          return throwError(() => new Error(errorMessage));
+        })
+      ).subscribe({
+        next: (response: any) => {
+          if (response) {
+            this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Registered and logged in successfully' });
+            observer.next(response);
+          } else {
+            observer.next(null);
+          }
+          observer.complete();
+        },
+        error: (error) => {
+          observer.error(error);
+        }
+      });
+    });
   }
 }

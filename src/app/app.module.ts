@@ -38,6 +38,8 @@ import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { AuthenticationInterceptor } from './services/interceptor';
 import { TransactionDialogComponent } from './transaction-listing/transaction-dialog/transaction-dialog.component';
 import { HomeComponent } from './home/home.component';
+import { RegisterComponent } from './register/register.component';
+import { InsuficientRightsComponent } from './insuficient-rights/insuficient-rights.component';
 
 
 
@@ -54,7 +56,9 @@ import { HomeComponent } from './home/home.component';
     TransactionListingComponent,
     TransactionDetailsComponent,
     TransactionDialogComponent,
-    HomeComponent
+    HomeComponent,
+    RegisterComponent,
+    InsuficientRightsComponent
   ],
   imports: [
     BrowserModule,

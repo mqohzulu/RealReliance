@@ -5,7 +5,7 @@ export interface Account {
     activeInd: boolean;
     balance: number;
     personID: string;
-    status: string | null;
+    status: boolean ;
   }
 
   export interface CreateAccountCommand {

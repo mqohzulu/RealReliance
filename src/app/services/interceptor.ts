@@ -10,8 +10,11 @@ export class AuthenticationInterceptor implements HttpInterceptor{
     const token = localStorage.getItem('token');
 
     if(token ){
+      const processedToken = token.replace(/^"|"$/g, '').trim(); 
       req = req.clone({       
-          setHeaders:{Authorization: `Bearer ${token}`}
+          setHeaders:{
+            Authorization: `Bearer ${processedToken}` 
+          }
       });
     }
 

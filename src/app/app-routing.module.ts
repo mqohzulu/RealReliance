@@ -10,10 +10,14 @@ import { AccountsDetailsComponent } from './accounts-details/accounts-details.co
 import { TransactionDetailsComponent } from './transaction-details/transaction-details.component';
 import { AuthGuard } from './services/auth.guard';
 import { HomeComponent } from './home/home.component';
+import { RegisterComponent } from './register/register.component';
+import { AccountsListingComponent } from './accounts-listing/accounts-listing.component';
+import { InsuficientRightsComponent } from './insuficient-rights/insuficient-rights.component';
 
 const routes: Routes = [
 
   { path: 'login', component: LoginComponent },
+  { path: 'register', component: RegisterComponent },
   { path: 'home', component: HomeComponent, canActivate:[AuthGuard]},
   { path: 'about', component: AboutComponent, canActivate:[AuthGuard] },
   { path: 'contact', component: ContactsComponent, canActivate:[AuthGuard] },
@@ -21,10 +25,10 @@ const routes: Routes = [
   { path: 'transaction-list', component: TransactionListingComponent, canActivate:[AuthGuard] },
   { path: 'person-list', component: PersonsListingComponent, canActivate:[AuthGuard] },
   { path: 'person-details', component: PersonsDetailsComponent, canActivate:[AuthGuard] },
-  { path: 'accounts-list', component: AccountsDetailsComponent, canActivate:[AuthGuard] },
+  { path: 'accounts-list', component: AccountsListingComponent, canActivate:[AuthGuard] },
   { path: 'transaction', component: TransactionDetailsComponent, canActivate:[AuthGuard] },
   { path: 'account-details', component: AccountsDetailsComponent, canActivate:[AuthGuard] },
-
+  { path: 'insufficient-rights', component: InsuficientRightsComponent },
 ];
 
 @NgModule({

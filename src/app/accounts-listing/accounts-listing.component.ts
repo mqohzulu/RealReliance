@@ -55,7 +55,7 @@ export class AccountsListingComponent implements OnInit,OnChanges {
   }
 
   private getPersonById(): void {
-    if (this.personID) {
+    if (this.personID && this.personID !=='00000000-0000-0000-0000-000000000000') {
       this.apiPerson.getPersonById(this.personID).subscribe((person: any) => {
         this.person = person;
         console.log("🚀 ~ this.apiPerson.getPersonById ~  this.person:",  this.person)
@@ -63,7 +63,7 @@ export class AccountsListingComponent implements OnInit,OnChanges {
     }
   }
    getAccountsByPersonId(): void {
-    if (this.personID) {
+    if (this.personID && this.personID !== '00000000-0000-0000-0000-000000000000') {
       this.apiAccounts.getAccountsByPersonId(this.personID).subscribe((accounts: any) => {
         this.accounts = accounts;
         console.log("accounts",  this.accounts)

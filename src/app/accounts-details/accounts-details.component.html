@@ -10,7 +10,7 @@
                 <br>
                 <div class="p-field p-col-12 p-md-6">
                     <label for="accountType">Account Type</label>
-                    <p-dropdown id="transactionType" from [options]="accountTypes" [(ngModel)]="account.accountType" placeholder="Select a type"></p-dropdown>
+                    <p-dropdown id="transactionType" [disabled]="account.accountID!==''" from [options]="accountTypes" [(ngModel)]="account.accountType" placeholder="Select a type"></p-dropdown>
                 </div>
                 <br>
                 <div class="p-field p-col-12 p-md-6">
@@ -19,14 +19,19 @@
                 </div>
                 <br>
                 <div class="p-field p-col-12 p-md-6">
+                    <label for="status">Account Status</label>&nbsp;
+                    <p-checkbox id="status" title="close account"  [(ngModel)]="account.status" [binary]="true" (ngModelChange)="closeAccount()"></p-checkbox>
+                </div>
+                <br>
+                <div class="p-field p-col-12 p-md-6">
                     <label for="activeInd">Active</label>&nbsp;
-                    <p-checkbox id="activeInd" [(ngModel)]="account.activeInd" [binary]="true"></p-checkbox>
+                    <p-checkbox id="activeInd" [disabled]="isAdmin" title="Deactivate account permanently" [(ngModel)]="account.activeInd" [binary]="true" (ngModelChange)="deactivateAccount()"></p-checkbox>
                 </div>
                 <hr>
                 <div class="p-field p-col-12">
                     <div class="button-group">
                         <button pButton icon="pi pi-save" class="p-button-success" type="button" label="Save"
-                            (click)="updateAccount()"></button>
+                            (click)="createAccount()"></button>
                         <button pButton icon="pi pi-arrow-circle-left" type="button" label="Back to List"
                             (click)="navigateToDetails()"></button>
                     </div>

@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { DataService } from '../services/data.service';
+import { AuthenticationService } from '../services/authentication.service';
 
 @Component({
   selector: 'app-home',
@@ -9,14 +10,21 @@ import { DataService } from '../services/data.service';
 export class HomeComponent {
   chartData: any;
   chartOptions: any;
+  isAdmin: boolean = false;
 
-  constructor(private apichartData:DataService){}
+  constructor(private apichartData: DataService, private authService: AuthenticationService) {
+
+  }
 
   ngOnInit() {
-    this.apichartData.getChartData().subscribe(data => {
-      this.setupChart(data);
+    this.isAdmin = this.authService.getUser().role == 'Admin';
+    if (this.isAdmin) {
+      this.apichartData.getChartData().subscribe(data => {
+        this.setupChart(data);
+      }
+      )
     }
-  )
+
   }
 
   setupChart(data: any) {
@@ -38,7 +46,7 @@ export class HomeComponent {
         }
       ]
     };
-  
+
     this.chartOptions = {
       responsive: true,
       title: {

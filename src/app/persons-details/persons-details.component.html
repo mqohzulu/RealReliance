@@ -14,7 +14,7 @@
           <br>
           <div class="p-field p-col-12 p-md-6">
             <label for="idNumber">ID Number</label>
-            <input id="idNumber" [disabled]="person.PersonId!==''" type="text" pInputText [(ngModel)]="person.IdNumber" required />
+            <input id="idNumber" [disabled]="person.PersonId!==''&& person.PersonId!=='00000000-0000-0000-0000-000000000000'" type="text" pInputText [(ngModel)]="person.IdNumber" required />
           </div>
           <br>
           <div class="p-field p-col-12 p-md-6">
@@ -34,7 +34,7 @@
           <br>
           <div class="p-field p-col-12 p-md-6">
             <label for="activeInd">Active</label>&nbsp;
-            <p-checkbox id="activeInd" [(ngModel)]="person.ActiveInd" [binary]="true"></p-checkbox>
+            <p-checkbox id="activeInd" [disabled]="isAdmin" [(ngModel)]="person.ActiveInd" [binary]="true" (ngModelChange)="deactivatePerson()"></p-checkbox>
           </div>
           <hr>
           <div class="p-field p-col-12">

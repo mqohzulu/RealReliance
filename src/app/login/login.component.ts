@@ -40,6 +40,7 @@ export class LoginComponent {
     this.authService.login(this.email, this.password).subscribe({
       next: (response: any) => {
         this.router.navigateByUrl(this.redirectUrl);
+        window.location.reload();
       },
       error:(err:any)=> {
         this.email = '';
@@ -53,6 +54,10 @@ export class LoginComponent {
       this.authSubscription.unsubscribe();
     }
 
+  }
+  navigateToRegister(){
+      this.router.navigate(['/register']);
+ 
   }
 
 }

@@ -82,4 +82,42 @@ export class ApiAccountsService {
       });
     });
   }
+  closeAccount(accountId: string): Observable<any> {
+    return new Observable(observer => {
+      const payload = { accountId: accountId };  
+      this.api.post<any>('Accounts/CloseAccount', payload).subscribe({
+        next: (response: any) => {
+          observer.next(response);
+          observer.complete();
+        },
+        error: (error: any) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error closing account',
+            detail: error.error
+          });
+          observer.error(error);
+        }
+      });
+    });
+  }
+  deactivateAccount(accountId: string): Observable<any> {
+    return new Observable(observer => {
+      const payload = { accountId: accountId };  
+      this.api.post<any>('Accounts/DeleteAccount', payload).subscribe({
+        next: (response: any) => {
+          observer.next(response);
+          observer.complete();
+        },
+        error: (error: any) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error deactivating account',
+            detail: error.error
+          });
+          observer.error(error);
+        }
+      });
+    });
+  }
 }

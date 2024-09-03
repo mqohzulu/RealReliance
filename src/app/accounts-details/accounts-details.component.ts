@@ -1,8 +1,9 @@
 import { Component } from '@angular/core';
 import { Account, CreateAccountCommand } from '../interfaces/Accounts-models';
-import { MessageService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiAccountsService } from '../services/api-accounts.service';
+import { AuthenticationService } from '../services/authentication.service';
 
 @Component({
   selector: 'app-accounts-details',
@@ -13,9 +14,12 @@ export class AccountsDetailsComponent {
   accountID: any;
   personID: any;
   createdAccountId: string = '';
+  isAdmin:boolean =this.authService.getUser() =='Admin';
   constructor(private messageService: MessageService,
     private router: Router,
     private activateRoutes: ActivatedRoute,
+    private authService: AuthenticationService,
+    private confirmationService:ConfirmationService,
     private apiAccount: ApiAccountsService) { }
 
   public account: Account = {
@@ -25,7 +29,7 @@ export class AccountsDetailsComponent {
     activeInd: true,
     balance: 0,
     personID: "",
-    status: null
+    status: false
   };
 
   public accountTypes: any[] = [
@@ -61,7 +65,38 @@ export class AccountsDetailsComponent {
     this.router.navigate(['/person-details'], { queryParams: { person_id: this.personID } });
 
   }
-  updateAccount() {
+  closeAccount(){
+    this.confirmationService.confirm({
+      message: 'Are you sure you want to close this account?',
+      accept: () => {
+        this.apiAccount.closeAccount(this.accountID).subscribe({
+          next:(data:any)=>{
+            this.messageService.add({severity:'success',summary:'success', detail:'Account successfully Closed'})
+          }
+        })
+      },
+      reject: () => {
+        this.refresh()
+      }
+    });
+  }
+  deactivateAccount(){
+    this.confirmationService.confirm({
+      message: 'Are you sure you want to deactivate this account?',
+      accept: () => {
+        this.apiAccount.deactivateAccount(this.accountID).subscribe({
+          next:(data:any)=>{
+            this.refresh();
+            this.messageService.add({severity:'success',summary:'success', detail:'Account successfully deactivated'})
+          }
+        })
+      },
+      reject: () => {
+        this.refresh()
+      }
+    });
+  }
+  createAccount() {
     const command: CreateAccountCommand = {
       PersonId: this.personID,
       AccountNumber: this.account.accountNumber,
@@ -75,6 +110,7 @@ export class AccountsDetailsComponent {
         this.createdAccountId = data;
         this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Account Successfully created' });
         this.refresh();
+        window.location.reload()
       }
     })
   }

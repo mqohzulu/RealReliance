@@ -12,6 +12,7 @@ export interface Person {
     ActiveInd: boolean;
   }
   export interface CreatePersonCommand {
+    personId:string;
     idNumber: number;
     firstName: string;
     lastName: string;

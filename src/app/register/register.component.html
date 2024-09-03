@@ -1,0 +1,45 @@
+<div class="register-container">
+    <p-card header="Register" [style]="{width:'400px'}">
+        <div class="field grid">
+            <label for="Name" class="col-fixed" style="width:100px">First Name</label>
+            <div class="col">
+                <input id="Name" style="width:360px" pInputText type="text" [(ngModel)]="firstName" />
+            </div>
+        </div>
+        <br>
+        <div class="field grid">
+            <label for="lastName" class="col-fixed" style="width:100px">Last Name</label>
+            <div class="col">
+                <input id="lastName" style="width:360px" pInputText type="text" [(ngModel)]="lastName" />
+            </div>
+        </div>
+        <br>
+        <div class="field grid">
+            <label for="email" class="col-fixed" style="width:100px">Email</label>
+            <div class="col">
+                <input id="email" style="width:360px" pInputText type="text" [(ngModel)]="email" />
+            </div>
+        </div>
+        <br>
+        <div class="field grid">
+            <label for="password" class="col-fixed" style="width:200px">Password</label>
+            <div class="col">
+                <input id="password" style="width:360px" pInputText type="password" [(ngModel)]="password" />
+            </div>
+        </div>
+        <br>
+        <div class="field grid">
+            <label for="role" class="col-fixed" style="width:100px">Role</label>
+            <div class="col">
+                <p-dropdown [options]="roles" [(ngModel)]="selectedRole" optionLabel="name" optionValue="value"
+                    [style]="{'width':'360px'}"></p-dropdown>
+            </div>
+        </div>
+        <br>
+        <div style="text-align: center;">
+            <button pButton type="button" label="Register" (click)="register()"></button>
+            <button pButton type="button" label="Back to Login" (click)="navigateToLogin()" class="p-button-secondary"
+                style="margin-left: 10px;"></button>
+        </div>
+    </p-card>
+</div>

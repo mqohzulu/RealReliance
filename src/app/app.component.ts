@@ -17,6 +17,7 @@ export class AppComponent {
   user: any;
 
   private authSubscription: Subscription | undefined;
+  isAdmin: boolean =false;
 
   constructor(
     private authService: AuthenticationService,
@@ -46,9 +47,11 @@ export class AppComponent {
   }
 
   private buildMenu(): void {
+    this.isAdmin = this.authService.getUser().role == 'Admin';
     this.menuItems = [
       { label: "Home", icon: "pi pi-home", iconStyle: { color: "#0189b5" }, routerLink: ["/home"] },
-      { label: "Persons", icon: "pi pi-users", iconStyle: { color: "#0189b5" }, routerLink: ["/person-list"] },
+      { label: "Persons",visible: this.isAdmin , icon: "pi pi-users", iconStyle: { color: "#0189b5" }, routerLink: ["/person-list"] },
+      { label: "My Profile", icon: "pi pi-user", iconStyle: { color: "#0189b5" }, routerLink: ["/person-details"] },
       { label: "About", icon: "pi pi-info-circle", iconStyle: { color: "#0189b5" }, routerLink: ["/about"] },
       { label: "Contact", icon: "pi pi-envelope", iconStyle: { color: "#0189b5" }, routerLink: ["/contact"] },
       { label: "LogOut", icon: "pi pi-sign-out", iconStyle: { color: "#ff0000" }, command: () => this.logOut() }

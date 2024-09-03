@@ -46,6 +46,25 @@ export class ApiPersonService {
       );
     });
   }
+  deactivatePerson(personId: any): Observable<any> {
+    return new Observable(observer => {
+      const payload = { personId: personId };  
+      this.api.delete<any>("Persons/DeletePerson", payload).subscribe(
+        {
+          next: (response: any) => {
+            observer.next(response);
+          },
+          error: (error: any) => {
+            this.messageService.add({ severity: 'error', summary: 'Error deactivating person', detail: error.error });
+            observer.error(error);
+          },
+          complete: () => {
+            observer.complete();
+          }
+        }
+      );
+    });
+  }
   getPersonsList(activeOnly: boolean): Observable<any> {
     return new Observable(observer => {
       this.api.get<any>("Persons/GetPersons", { activeOnly: activeOnly }).subscribe(
@@ -66,6 +85,23 @@ export class ApiPersonService {
   getPersonById(personId: string): Observable<any> {
     return new Observable(observer => {
       this.api.get<any>("Persons/GetPersonById", { personId: personId }).subscribe(
+        {
+          next: (response: any) => {
+            observer.next(response);
+          },
+          error: (error: any) => {
+            this.messageService.add({ severity: 'error', summary: 'Error getting person', detail: error.error });
+            observer.error(error);
+
+          },
+        }
+      );
+    }
+    )
+  };
+  getPersonByEmail(email: string): Observable<any> {
+    return new Observable(observer => {
+      this.api.get<any>("Persons/GetPersonByEmail", { email: email }).subscribe(
         {
           next: (response: any) => {
             observer.next(response);

@@ -1,12 +1,13 @@
-<div class="container">
+<div *ngIf="isAdmin">
+  <div class="container">
     <h1>Banking System Overview</h1>
-    
+
     <div class="chart-container">
       <p-chart type="bar" [data]="chartData" [options]="chartOptions"></p-chart>
     </div>
-  
+
     <!-- You can add more content here, such as tables or additional charts -->
-    
+
     <div class="summary">
       <h2>Summary</h2>
       <p *ngIf="chartData">
@@ -18,3 +19,4 @@
       </p>
     </div>
   </div>
+</div>
