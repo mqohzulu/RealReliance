@@ -1,113 +1,179 @@
-<div>
-    <div class="page_heading"> PERSONS LIST</div>
-</div>
-<p-table [value]="persons">
-    <ng-template pTemplate="caption" style="width: 100%;">
-        <div class="grid m-0 py-2 ">
-            <div class="col-2">
-                <p-button severity="success" (onClick)="addPerson()" label="Add New Person"></p-button>&nbsp;
-            </div>
-            <div class="col-6">
+<div class="persons-wrapper">
+  <!-- Hero Section -->
+  <div class="persons-hero">
+    <div class="hero-content">
+      <h1 class="hero-title">Persons Management</h1>
+      <p class="hero-subtitle">View, manage, and filter all registered persons in the system.</p>
+    </div>
+  </div>
 
+  <!-- Main Content -->
+  <div class="persons-container">
+    <div class="persons-card">
+      <!-- Header Section -->
+      <div class="persons-header">
+        <h2 class="persons-title">Persons List</h2>
+        <p class="persons-description">Manage all registered persons, filter by status, or add new entries.</p>
+        
+        <!-- Action Bar -->
+        <div class="action-bar">
+          <button 
+            pButton 
+            severity="success" 
+            icon="pi pi-plus" 
+            label="Add New Person" 
+            (click)="addPerson()"
+            class="action-button"
+          ></button>
+          
+          <div class="search-filter-section">
+            <!-- Search Input -->
+            <div class="search-box">
+            <span class="p-input-icon-left">
+                <i class="pi pi-search"></i>
+                <input 
+                pInputText
+                type="text"
+                [(ngModel)]="search"
+                placeholder="Search persons..."
+                (input)="applyGlobalFilter()"
+                class="search-input"
+                />
+            </span>
             </div>
-            <div class="col-4" style="text-align: right;">
-                <i class="pi pi-search"></i>&nbsp;
-                <span class="p-input-icon-left ml-2">
-                    <input pInputText [(ngModel)]="search" type="text"
-                        (input)="applyFilterGlobal($event, 'contains')" />
-                </span> &nbsp;
-                <span>Only Active persons</span>&nbsp;
-                <p-checkbox [binary]="true" [(ngModel)]="active_only" (ngModelChange)="refresh()"></p-checkbox>
+            <!-- Active Filter -->
+            <div class="filter-toggle">
+              <span class="filter-label">Show Active Only</span>
+              <p-checkbox 
+                [binary]="true" 
+                [(ngModel)]="active_only" 
+                (ngModelChange)="refresh()"
+                class="active-checkbox"
+              ></p-checkbox>
             </div>
+          </div>
         </div>
+      </div>
 
+      <!-- Table Section -->
+      <div class="table-container">
+        <p-table 
+          [value]="persons" 
+          styleClass="persons-table"
+          [paginator]="true" 
+          [rows]="10"
+          [showCurrentPageReport]="true"
+          currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+          [rowsPerPageOptions]="[10, 25, 50]"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 160px;">Actions</th>
+              <th pSortableColumn="idNumber" style="width: 180px;">
+                <div class="column-header">
+                  <span>ID Number</span>
+                  <p-sortIcon field="idNumber"></p-sortIcon>
+                </div>
+                <p-columnFilter type="text" field="idNumber" display="menu" placeholder="Filter by ID"></p-columnFilter>
+              </th>
+              <th pSortableColumn="firstName" style="width: 150px;">
+                <div class="column-header">
+                  <span>First Name</span>
+                  <p-sortIcon field="firstName"></p-sortIcon>
+                </div>
+                <p-columnFilter type="text" field="firstName" display="menu" placeholder="Filter by first name"></p-columnFilter>
+              </th>
+              <th pSortableColumn="lastName" style="width: 150px;">
+                <div class="column-header">
+                  <span>Last Name</span>
+                  <p-sortIcon field="lastName"></p-sortIcon>
+                </div>
+                <p-columnFilter type="text" field="lastName" display="menu" placeholder="Filter by last name"></p-columnFilter>
+              </th>
+              <th pSortableColumn="email" style="width: 220px;">
+                <div class="column-header">
+                  <span>Email</span>
+                  <p-sortIcon field="email"></p-sortIcon>
+                </div>
+                <p-columnFilter type="text" field="email" display="menu" placeholder="Filter by email"></p-columnFilter>
+              </th>
+              <th pSortableColumn="phoneNumber" style="width: 160px;">
+                <div class="column-header">
+                  <span>Phone Number</span>
+                  <p-sortIcon field="phoneNumber"></p-sortIcon>
+                </div>
+                <p-columnFilter type="text" field="phoneNumber" display="menu" placeholder="Filter by phone"></p-columnFilter>
+              </th>
+              <th pSortableColumn="dateOfBirth" style="width: 150px;">
+                <div class="column-header">
+                  <span>Date of Birth</span>
+                  <p-sortIcon field="dateOfBirth"></p-sortIcon>
+                </div>
+                <p-columnFilter type="date" field="dateOfBirth" display="menu"></p-columnFilter>
+              </th>
+              <th pSortableColumn="activeInd" style="width: 120px;">
+                <div class="column-header">
+                  <span>Status</span>
+                  <p-sortIcon field="activeInd"></p-sortIcon>
+                </div>
+                <p-columnFilter type="boolean" field="activeInd" display="menu"></p-columnFilter>
+              </th>
+            </tr>
+          </ng-template>
 
-    </ng-template>
-    <ng-template pTemplate="header">
-        <tr>
-            <th></th>
-            <th pSortableColumn="IdNumber">
-                <span>
-                    <span class="label" class="multiline-header">Id Number</span>
-                    <span class="filter">
-                        <p-sortIcon field="PersonId"></p-sortIcon>
-                        <p-columnFilter type="text" field="IdNumber" display="menu"></p-columnFilter>
-                    </span>
+          <ng-template pTemplate="body" let-person>
+            <tr>
+              <td>
+                <div class="action-buttons">
+                  <button 
+                    pButton 
+                    severity="info" 
+                    icon="pi pi-pencil" 
+                    size="small" 
+                    title="Edit person details"
+                    (click)="openEdit(person.personID)"
+                    class="action-btn edit-btn"
+                  ></button>
+                  <button 
+                    pButton 
+                    severity="danger" 
+                    icon="pi pi-trash" 
+                    size="small" 
+                    title="Deactivate person"
+                    (click)="deactivate(person.idNumber)"
+                    class="action-btn delete-btn"
+                  ></button>
+                </div>
+              </td>
+              <td>{{ person.idNumber }}</td>
+              <td>{{ person.firstName }}</td>
+              <td>{{ person.lastName }}</td>
+              <td>
+                <a href="mailto:{{ person.email }}" class="email-link">{{ person.email }}</a>
+              </td>
+              <td>{{ person.phoneNumber }}</td>
+              <td>{{ person.dateOfBirth | date: 'yyyy-MM-dd' }}</td>
+              <td>
+                <span class="status-badge" [class.active]="person.activeInd" [class.inactive]="!person.activeInd">
+                  {{ person.activeInd ? 'Active' : 'Inactive' }}
                 </span>
-            </th>
-            <th pSortableColumn="firstName">
-                <span>
-                    <span class="label" class="multiline-header">First Name</span>
-                    <span class="filter">
-                        <p-sortIcon field="PersonId"></p-sortIcon>
-                        <p-columnFilter type="text" field="firstName" display="menu"></p-columnFilter>
-                    </span>
-                </span>
-            </th>
-            <th pSortableColumn="lastName">
-                <span>
-                    <span class="label" class="multiline-header">Last Name</span>
-                    <span class="filter">
-                        <p-sortIcon field="PersonId"></p-sortIcon>
-                        <p-columnFilter type="text" field="lastName" display="menu"></p-columnFilter>
-                    </span>
-                </span>
-            </th>
-            <th pSortableColumn="email">
-                <span>
-                    <span class="label" class="multiline-header">Email</span>
-                    <span class="filter">
-                        <p-sortIcon ></p-sortIcon>
-                        <p-columnFilter type="text" field="email" display="menu"></p-columnFilter>
-                    </span>
-                </span>
-            </th>
-            <th pSortableColumn="phoneNumber">
-                <span>
-                    <span class="label" class="multiline-header">Phone Number</span>
-                    <span class="filter">
-                        <p-sortIcon field="PersonId"></p-sortIcon>
-                        <p-columnFilter type="text" field="phoneNumber" display="menu"></p-columnFilter>
-                    </span>
-                </span>
-            </th>
-            <th pSortableColumn="dateOfBirth">
-                <span>
-                    <span class="label" class="multiline-header">Date Of Birth</span>
-                    <span class="filter">
-                        <p-sortIcon field="PersonId"></p-sortIcon>
-                        <p-columnFilter type="text" field="dateOfBirth" display="menu"></p-columnFilter>
-                    </span>
-                </span>
-            </th>
-            <th pSortableColumn="Active">
-                <span>
-                    <span class="label" class="multiline-header">Active</span>
-                    <span class="filter">
-                        <p-sortIcon field="PersonId"></p-sortIcon>
-                        <p-columnFilter type="text" field="Active" display="menu"></p-columnFilter>
-                    </span>
-                </span>
-            </th>
-        </tr>
-    </ng-template>
-    <ng-template pTemplate="body" let-person>
-        <tr>
-            <td style="width: 150px;">
-                <p-button severity="info" icon="pi pi-pencil" size="small" title="Edit person details"
-                    (onClick)="openEdit(person.personID)"></p-button>&nbsp;
-                <p-button severity="danger" icon="pi pi-trash" size="small" title="Deactivate person"
-                    (onClick)="deactivate(person.idNumber)"></p-button>
-            </td>
-            <td>{{ person.idNumber }}</td>
-            <td>{{ person.firstName }}</td>
-            <td>{{ person.lastName }}</td>
-            <td>{{ person.email }}</td>
-            <td>{{ person.phoneNumber }}</td>
-            <td>{{ person.dateOfBirth | date: 'yyyy-MM-dd' }}</td>
-            <td>
-                <p-checkbox [disabled]="true" [binary]="true" [(ngModel)]="person.activeInd"></p-checkbox>
-            </td>
-        </tr>
-    </ng-template>
-</p-table>
+              </td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="8" class="empty-message">
+                <div class="empty-state">
+                  <i class="pi pi-users" style="font-size: 3rem; color: #667eea;"></i>
+                  <h3>No persons found</h3>
+                  <p>No persons match your current filters.</p>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+  </div>
+</div>

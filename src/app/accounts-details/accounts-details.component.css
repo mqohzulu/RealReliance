@@ -1,27 +1,428 @@
-.container {
-    display: flex;
-    gap: 3px; /* Adjust the gap between the card and the table as needed */
-  }
-  
-  .card-container {
-    flex: 1; /* Allows this container to take available space */
-    max-width: 30%; /* Limit the width of the card container */
-  }
-  
-  .transactions-list-container {
-    flex: 1; /* Allows this container to take available space */
-    max-width: 100%; /* Limit the width of the account list container */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-  }
-  .button-group {
-    display: flex; /* Align buttons side-by-side */
-    gap: 10px; /* Space between the buttons */
-    justify-content: flex-start; /* Align buttons to the left */
+.account-details-wrapper {
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* Hero Section */
+.account-hero {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  padding: 2.5rem 1rem;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  width: 100%;
+}
+
+.hero-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.hero-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: white;
+  margin: 0 0 0.5rem 0;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.hero-subtitle {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+/* Main Container */
+.account-container {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 1.5rem 2rem;
+  box-sizing: border-box;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: 400px minmax(0, 1fr);
+  gap: 2rem;
+  width: 100%;
+  align-items: stretch;
+}
+
+/* Columns */
+.left-column {
+  position: sticky;
+  top: 1.5rem;
+  align-self: start;
+}
+
+.right-column {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Card Styles */
+.account-details-card,
+.transactions-card,
+.placeholder-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.account-details-card {
+  padding: 1.75rem;
+  min-height: 500px;
+}
+
+.transactions-card {
+  height: calc(100vh - 220px);
+  max-height: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.placeholder-card {
+  padding: 2rem 1.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 500px;
+}
+
+/* Card Header */
+.card-header {
+  margin-bottom: 1.5rem;
+}
+
+.card-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.25rem 0;
+}
+
+.card-description {
+  font-size: 0.95rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Form Styles */
+.account-form {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-grid {
+  flex: 1;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.status-group {
+  width: 100%;
+}
+
+.form-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.required {
+  color: #ef4444;
+}
+
+/* Input Styles */
+.form-input {
+  padding: 0.75rem 0.875rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.2s ease;
+  background: #f8fafc;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-input:disabled {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* Dropdown Styles */
+:host ::ng-deep .form-dropdown {
+  width: 100%;
+}
+
+:host ::ng-deep .form-dropdown .p-dropdown {
+  width: 100%;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+  transition: all 0.2s ease;
+}
+
+:host ::ng-deep .form-dropdown .p-dropdown:not(.p-disabled):hover {
+  border-color: #cbd5e1;
+}
+
+:host ::ng-deep .form-dropdown .p-dropdown.p-focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+:host ::ng-deep .form-dropdown .p-dropdown-label {
+  padding: 0.75rem 0.875rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+}
+
+:host ::ng-deep .form-dropdown .p-dropdown.p-disabled {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.field-note {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin-top: 0.25rem;
+}
+
+/* Status Control */
+.status-control {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 2px solid #e2e8f0;
+  width: 100%;
+}
+
+:host ::ng-deep .status-checkbox .p-checkbox-box {
+  border: 2px solid #cbd5e1;
+  border-radius: 6px;
+  width: 20px;
+  height: 20px;
+}
+
+:host ::ng-deep .status-checkbox .p-checkbox-box.p-highlight {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-color: #10b981;
+}
+
+.status-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid #f1f5f9;
+}
+
+:host ::ng-deep .save-button {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+:host ::ng-deep .save-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+}
+
+:host ::ng-deep .save-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+:host ::ng-deep .back-button {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+:host ::ng-deep .back-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(107, 114, 128, 0.4);
+}
+
+/* Transactions Content */
+.transactions-content {
+  flex: 1;
+  overflow: hidden;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Placeholder */
+.placeholder-icon {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.placeholder-icon i {
+  font-size: 1.75rem;
+  color: #94a3b8;
+}
+
+.placeholder-card h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.5rem 0;
+}
+
+.placeholder-card p {
+  font-size: 0.95rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+  max-width: 80%;
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+  .content-grid {
+    grid-template-columns: 350px 1fr;
+    gap: 1.25rem;
   }
   
-  .small-button {
-    font-size: 0.875rem; /* Adjust font size for smaller buttons */
-    padding: 0.5rem 1rem; /* Adjust padding for smaller buttons */
+  .account-details-card,
+  .transactions-card {
+    padding: 1.5rem;
   }
   
+  .hero-title {
+    font-size: 1.75rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
   
+  .left-column {
+    position: static;
+  }
+  
+  .account-hero {
+    padding: 2rem 1rem;
+  }
+  
+  .account-container {
+    padding: 1rem;
+  }
+  
+  .account-details-card,
+  .transactions-card,
+  .placeholder-card {
+    min-height: auto;
+    max-height: none;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 576px) {
+  .hero-title {
+    font-size: 1.5rem;
+  }
+  
+  .hero-subtitle {
+    font-size: 0.9rem;
+  }
+  
+  .card-title {
+    font-size: 1.25rem;
+  }
+  
+  .account-details-card,
+  .transactions-card {
+    padding: 1.25rem;
+  }
+  
+  .form-actions {
+    gap: 0.5rem;
+  }
+  
+  :host ::ng-deep .save-button,
+  :host ::ng-deep .back-button {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.9rem;
+  }
+}

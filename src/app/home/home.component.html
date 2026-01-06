@@ -1,22 +1,102 @@
 <div *ngIf="isAdmin">
-  <div class="container">
-    <h1>Banking System Overview</h1>
-
-    <div class="chart-container">
-      <p-chart type="bar" [data]="chartData" [options]="chartOptions"></p-chart>
+  <div class="dashboard-container">
+    <div class="dashboard-header">
+      <h1 class="dashboard-title">Banking Analytics Dashboard</h1>
+      <p class="dashboard-subtitle">Real-time system metrics and insights</p>
     </div>
 
-    <!-- You can add more content here, such as tables or additional charts -->
+    <div class="stats-grid">
+      <div class="stat-card stat-card-primary">
+        <div class="stat-icon">
+          <i class="pi pi-users"></i>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-value" *ngIf="chartData">{{ chartData.datasets[0].data[0] | number }}</h3>
+          <p class="stat-label">Total People</p>
+        </div>
+      </div>
 
-    <div class="summary">
-      <h2>Summary</h2>
-      <p *ngIf="chartData">
-        Total People: {{ chartData.datasets[0].data[0] }}<br>
-        Total Accounts: {{ chartData.datasets[0].data[1] }}<br>
-        Total Transactions: {{ chartData.datasets[0].data[2] }}<br>
-        Total Balance: {{ chartData.datasets[1].data[1] | currency }}<br>
-        Total Transaction Amount: {{ chartData.datasets[1].data[2] | currency }}
-      </p>
+      <div class="stat-card stat-card-success">
+        <div class="stat-icon">
+          <i class="pi pi-wallet"></i>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-value" *ngIf="chartData">{{ chartData.datasets[0].data[1] | number }}</h3>
+          <p class="stat-label">Active Accounts</p>
+        </div>
+      </div>
+
+      <div class="stat-card stat-card-warning">
+        <div class="stat-icon">
+          <i class="pi pi-arrow-right-arrow-left"></i>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-value" *ngIf="chartData">{{ chartData.datasets[0].data[2] | number }}</h3>
+          <p class="stat-label">Transactions</p>
+        </div>
+      </div>
+
+      <div class="stat-card stat-card-info">
+        <div class="stat-icon">
+          <i class="pi pi-dollar"></i>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-value" *ngIf="chartData">{{ chartData.datasets[1].data[1] | currency }}</h3>
+          <p class="stat-label">Total Balance</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-header">
+          <h2 class="chart-title">System Overview</h2>
+          <span class="chart-badge">Count Metrics</span>
+        </div>
+        <div class="chart-wrapper">
+          <p-chart type="doughnut" [data]="doughnutData" [options]="doughnutOptions"></p-chart>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-header">
+          <h2 class="chart-title">Financial Metrics</h2>
+          <span class="chart-badge">Amount Analysis</span>
+        </div>
+        <div class="chart-wrapper">
+          <p-chart type="line" [data]="lineData" [options]="lineOptions"></p-chart>
+        </div>
+      </div>
+
+      <div class="chart-card chart-card-wide">
+        <div class="chart-header">
+          <h2 class="chart-title">Comparative Analysis</h2>
+          <span class="chart-badge">Multi-dimensional View</span>
+        </div>
+        <div class="chart-wrapper">
+          <p-chart type="bar" [data]="barData" [options]="barOptions"></p-chart>
+        </div>
+      </div>
+    </div>
+
+    <div class="insights-section">
+      <div class="insight-card">
+        <h3 class="insight-title">Key Insights</h3>
+        <ul class="insight-list" *ngIf="chartData">
+          <li class="insight-item">
+            <span class="insight-icon">📊</span>
+            Average balance per account: {{ (chartData.datasets[1].data[1] / chartData.datasets[0].data[1]) | currency }}
+          </li>
+          <li class="insight-item">
+            <span class="insight-icon">💳</span>
+            Average transaction value: {{ (chartData.datasets[1].data[2] / chartData.datasets[0].data[2]) | currency }}
+          </li>
+          <li class="insight-item">
+            <span class="insight-icon">👥</span>
+            Accounts per person: {{ (chartData.datasets[0].data[1] / chartData.datasets[0].data[0]) | number:'1.2-2' }}
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
 </div>

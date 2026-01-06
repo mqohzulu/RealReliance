@@ -1,54 +1,204 @@
-<div class="container">
-    <div class="card-container">
-      <p-card class="p-card-custom">
-        <div class="p-fluid p-formgrid p-grid">
-          <div class="p-field p-col-12 p-md-6">
-            <label for="firstName">First Name</label>
-            <input id="firstName" type="text" pInputText [(ngModel)]="person.FirstName" required />
-          </div>
-          <br>
-          <div class="p-field p-col-12 p-md-6">
-            <label for="lastName">Last Name</label>
-            <input id="lastName" type="text" pInputText [(ngModel)]="person.LastName" required />
-          </div>
-          <br>
-          <div class="p-field p-col-12 p-md-6">
-            <label for="idNumber">ID Number</label>
-            <input id="idNumber" [disabled]="person.PersonId!==''&& person.PersonId!=='00000000-0000-0000-0000-000000000000'" type="text" pInputText [(ngModel)]="person.IdNumber" required />
-          </div>
-          <br>
-          <div class="p-field p-col-12 p-md-6">
-            <label for="email">Email</label>
-            <input id="email" type="email" pInputText [(ngModel)]="person.Email" required />
-          </div>
-          <br>
-          <div class="p-field p-col-12 p-md-6">
-            <label for="phoneNumber">Phone Number</label>
-            <input id="phoneNumber" type="text" pInputText [(ngModel)]="person.PhoneNumber" required  />
-          </div>
-          <br>
-          <div class="p-field p-col-12 p-md-6">
-            <label for="dateOfBirth">Date of Birth</label>
-            <p-calendar id="dateOfBirth" [(ngModel)]="person.DateOfBirth" dateFormat="yy-mm-dd"></p-calendar>
-          </div>
-          <br>
-          <div class="p-field p-col-12 p-md-6">
-            <label for="activeInd">Active</label>&nbsp;
-            <p-checkbox id="activeInd" [disabled]="isAdmin" [(ngModel)]="person.ActiveInd" [binary]="true" (ngModelChange)="deactivatePerson()"></p-checkbox>
-          </div>
-          <hr>
-          <div class="p-field p-col-12">
-            <div class="button-group">
-              <button pButton icon="pi pi-save" class="p-button-success" type="button" label="Save" (click)="addNewPerson()"></button>
-              <button pButton icon="pi pi-arrow-circle-left" type="button" label="Back to List" (click)="navigateToDetails()"></button>
-            </div>
-          </div>         
-        </div>
-      </p-card>
-    </div>
-  
-    <div class="account-list-container" *ngIf="person.PersonId">
-      <app-accounts-listing [personID]="person.PersonId"></app-accounts-listing>
+<div class="person-details-wrapper">
+  <!-- Hero Section -->
+  <div class="person-hero">
+    <div class="hero-content">
+      <h1 class="hero-title">{{ person.PersonId ? 'Edit Person' : 'Add New Person' }}</h1>
+      <p class="hero-subtitle">{{ person.PersonId ? 'Update person information and manage accounts' : 'Add new person to the system' }}</p>
     </div>
   </div>
-  
+
+  <div class="person-container">
+    <div class="content-grid">
+      <!-- Left Column: Person Details -->
+      <div class="left-column">
+        <div class="person-details-card">
+          <div class="card-header">
+            <h2 class="card-title">Personal Information</h2>
+            <p class="card-description">Fill in the person's details below</p>
+          </div>
+          
+          <form class="person-form">
+            <div class="form-grid">
+              <!-- Row 1: First Name & Last Name -->
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="firstName" class="form-label">
+                    First Name <span class="required">*</span>
+                  </label>
+                  <input 
+                    id="firstName" 
+                    type="text" 
+                    pInputText 
+                    [(ngModel)]="person.FirstName" 
+                    name="firstName"
+                    required
+                    class="form-input"
+                    placeholder="Enter first name"
+                  />
+                </div>
+                
+                <div class="form-group">
+                  <label for="lastName" class="form-label">
+                    Last Name <span class="required">*</span>
+                  </label>
+                  <input 
+                    id="lastName" 
+                    type="text" 
+                    pInputText 
+                    [(ngModel)]="person.LastName" 
+                    name="lastName"
+                    required
+                    class="form-input"
+                    placeholder="Enter last name"
+                  />
+                </div>
+              </div>
+              
+              <!-- Row 2: ID Number & Email -->
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="idNumber" class="form-label">
+                    ID Number <span class="required">*</span>
+                  </label>
+                  <input 
+                    id="idNumber" 
+                    type="text" 
+                    pInputText 
+                    [(ngModel)]="person.IdNumber" 
+                    name="idNumber"
+                    required
+                    [disabled]="person.PersonId && person.PersonId !== '' && person.PersonId !== '00000000-0000-0000-0000-000000000000'"
+                    class="form-input"
+                    placeholder="Enter ID number"
+                  />
+                  <small class="field-note" *ngIf="person.PersonId && person.PersonId !== '' && person.PersonId !== '00000000-0000-0000-0000-000000000000'">
+                    ID number cannot be changed once saved
+                  </small>
+                </div>
+                
+                <div class="form-group">
+                  <label for="email" class="form-label">
+                    Email <span class="required">*</span>
+                  </label>
+                  <input 
+                    id="email" 
+                    type="email" 
+                    pInputText 
+                    [(ngModel)]="person.Email" 
+                    name="email"
+                    required
+                    class="form-input"
+                    placeholder="Enter email address"
+                  />
+                </div>
+              </div>
+              
+              <!-- Row 3: Phone Number & Date of Birth -->
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="phoneNumber" class="form-label">
+                    Phone Number <span class="required">*</span>
+                  </label>
+                  <input 
+                    id="phoneNumber" 
+                    type="text" 
+                    pInputText 
+                    [(ngModel)]="person.PhoneNumber" 
+                    name="phoneNumber"
+                    required
+                    class="form-input"
+                    placeholder="Enter phone number"
+                  />
+                </div>
+                
+                <div class="form-group">
+                  <label for="dateOfBirth" class="form-label">
+                    Date of Birth <span class="required">*</span>
+                  </label>
+                  <p-calendar 
+                    id="dateOfBirth" 
+                    [(ngModel)]="person.DateOfBirth" 
+                    name="dateOfBirth"
+                    dateFormat="yy-mm-dd"
+                    [showIcon]="true"
+                    inputId="icon"
+                    class="calendar-input"
+                    placeholder="Select date of birth"
+                  ></p-calendar>
+                </div>
+              </div>
+              
+              <!-- Row 4: Active Status -->
+              <div class="form-row">
+                <div class="form-group status-group">
+                  <label class="form-label">Status</label>
+                  <div class="status-control">
+                    <p-checkbox 
+                      id="activeInd" 
+                      [(ngModel)]="person.ActiveInd" 
+                      name="activeInd"
+                      [binary]="true" 
+                      (ngModelChange)="deactivatePerson()"
+                      [disabled]="isAdmin"
+                      class="status-checkbox"
+                    ></p-checkbox>
+                    <span class="status-label">Active</span>
+                    <small class="field-note" *ngIf="isAdmin">
+                      Only administrators can change status
+                    </small>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="form-actions">
+              <button 
+                pButton 
+                type="button" 
+                icon="pi pi-save" 
+                label="Save Person" 
+                class="save-button"
+                (click)="addNewPerson()"
+              ></button>
+              
+              <button 
+                pButton 
+                type="button" 
+                icon="pi pi-arrow-left" 
+                label="Back to List" 
+                class="back-button"
+                (click)="navigateToDetails()"
+              ></button>
+            </div>
+          </form>
+        </div>
+      </div>
+      
+      <!-- Right Column: Accounts List -->
+      <div class="right-column" *ngIf="person.PersonId && person.PersonId !== '00000000-0000-0000-0000-000000000000'">
+        <div class="accounts-card">
+          <div class="card-header">
+            <h2 class="card-title">Accounts</h2>
+            <p class="card-description">Manage this person's bank accounts</p>
+          </div>
+          
+          <div class="accounts-content">
+            <app-accounts-listing [personID]="person.PersonId"></app-accounts-listing>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Placeholder when no person selected -->
+      <div class="right-column" *ngIf="!person.PersonId || person.PersonId === '' || person.PersonId === '00000000-0000-0000-0000-000000000000'">
+        <div class="placeholder-card">
+          <div class="placeholder-icon">
+            <i class="pi pi-wallet"></i>
+          </div>
+          <h3>No Person Selected</h3>
+          <p>Save a person first to manage their bank accounts</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

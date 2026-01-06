@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { AuthenticationService } from './services/authentication.service';
@@ -9,15 +9,14 @@ import { Subscription } from 'rxjs';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent {
+export class AppComponent implements OnInit, OnDestroy {
   title = 'RealReliance';
   menuItems: MenuItem[] | undefined;
   pageName: string = "";
   authenticated: boolean = false;
   user: any;
-
   private authSubscription: Subscription | undefined;
-  isAdmin: boolean =false;
+  isAdmin: boolean = false;
 
   constructor(
     private authService: AuthenticationService,
@@ -27,17 +26,41 @@ export class AppComponent {
   ) {}
 
   ngOnInit(): void {
+    // Check initial authentication state
+    this.checkAuthentication();
+    
     this.authSubscription = this.authService.isAuthenticated$.subscribe(
       isAuthenticated => {
         this.authenticated = isAuthenticated;
         this.user = this.authService.getUser();
+        
         if (this.authenticated) {
           this.buildMenu();
         } else {
           this.clearMenu();
+          this.redirectToLogin(); // Redirect to login if not authenticated
         }
       }
     );
+  }
+
+  private checkAuthentication(): void {
+    this.authenticated = this.authService.isAuthenticated();
+    this.user = this.authService.getUser();
+    
+    if (this.authenticated) {
+      this.buildMenu();
+    } else {
+      this.clearMenu();
+      this.redirectToLogin();
+    }
+  }
+
+  private redirectToLogin(): void {
+    // Only redirect if not already on login page to avoid infinite loop
+    if (!this.router.url.includes('/login')) {
+      this.router.navigate(['/login']);
+    }
   }
 
   ngOnDestroy(): void {
@@ -47,10 +70,10 @@ export class AppComponent {
   }
 
   private buildMenu(): void {
-    this.isAdmin = this.authService.getUser().role == 'Admin';
+    this.isAdmin = this.user?.role === 'Admin';
     this.menuItems = [
       { label: "Home", icon: "pi pi-home", iconStyle: { color: "#0189b5" }, routerLink: ["/home"] },
-      { label: "Persons",visible: this.isAdmin , icon: "pi pi-users", iconStyle: { color: "#0189b5" }, routerLink: ["/person-list"] },
+      { label: "Persons", visible: this.isAdmin, icon: "pi pi-users", iconStyle: { color: "#0189b5" }, routerLink: ["/person-list"] },
       { label: "My Profile", icon: "pi pi-user", iconStyle: { color: "#0189b5" }, routerLink: ["/person-details"] },
       { label: "About", icon: "pi pi-info-circle", iconStyle: { color: "#0189b5" }, routerLink: ["/about"] },
       { label: "Contact", icon: "pi pi-envelope", iconStyle: { color: "#0189b5" }, routerLink: ["/contact"] },
@@ -68,7 +91,10 @@ export class AppComponent {
       icon: 'pi pi-sign-out',
       accept: () => {
         this.authService.logout();
-        window.location.reload(); 
+        this.router.navigate(['/login']).then(() => {
+          // Optional: force reload if needed
+          // window.location.reload();
+        });
       },
       reject: () => {
         // Do nothing on reject

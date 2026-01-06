@@ -1,45 +1,180 @@
-<div class="container">
-    <!-- Edit Account Form on the Left -->
-    <div class="card-container">
-        <p-card>
-            <div class="p-fluid p-formgrid p-grid">
-                <div class="p-field p-col-12 p-md-6">
-                    <label for="accountNumber">Account Number</label>
-                    <input id="accountNumber" [disabled]="account.accountID!==''" type="text" pInputText [(ngModel)]="account.accountNumber" required />
+<div class="account-details-wrapper">
+  <!-- Hero Section -->
+  <div class="account-hero">
+    <div class="hero-content">
+      <h1 class="hero-title">{{ account.accountID ? 'Edit Account' : 'Add New Account' }}</h1>
+      <p class="hero-subtitle">{{ account.accountID ? 'Update account information and manage transactions' : 'Add new account to the system' }}</p>
+    </div>
+  </div>
+
+  <div class="account-container">
+    <div class="content-grid">
+      <!-- Left Column: Account Details -->
+      <div class="left-column">
+        <div class="account-details-card">
+          <div class="card-header">
+            <h2 class="card-title">Account Information</h2>
+            <p class="card-description">Fill in the account details below</p>
+          </div>
+          
+          <form class="account-form">
+            <div class="form-grid">
+              <!-- Row 1: Account Number & Account Type -->
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="accountNumber" class="form-label">
+                    Account Number <span class="required">*</span>
+                  </label>
+                  <input 
+                    id="accountNumber" 
+                    type="text" 
+                    pInputText 
+                    [(ngModel)]="account.accountNumber" 
+                    name="accountNumber"
+                    required
+                    [disabled]="account.accountID !== ''"
+                    class="form-input"
+                    placeholder="Enter account number"
+                  />
+                  <small class="field-note" *ngIf="account.accountID !== ''">
+                    Account number cannot be changed once saved
+                  </small>
                 </div>
-                <br>
-                <div class="p-field p-col-12 p-md-6">
-                    <label for="accountType">Account Type</label>
-                    <p-dropdown id="transactionType" [disabled]="account.accountID!==''" from [options]="accountTypes" [(ngModel)]="account.accountType" placeholder="Select a type"></p-dropdown>
+                
+                <div class="form-group">
+                  <label for="accountType" class="form-label">
+                    Account Type <span class="required">*</span>
+                  </label>
+                  <p-dropdown 
+                    id="accountType" 
+                    [options]="accountTypes" 
+                    [(ngModel)]="account.accountType" 
+                    name="accountType"
+                    placeholder="Select account type"
+                    [disabled]="account.accountID !== ''"
+                    class="form-dropdown"
+                  ></p-dropdown>
                 </div>
-                <br>
-                <div class="p-field p-col-12 p-md-6">
-                    <label for="balance">Balance</label>
-                    <input id="balance" [disabled]="account.accountID!==''" type="number" pInputText [(ngModel)]="account.balance" required />
+              </div>
+              
+              <!-- Row 2: Balance -->
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="balance" class="form-label">
+                    Balance <span class="required">*</span>
+                  </label>
+                  <input 
+                    id="balance" 
+                    type="number" 
+                    pInputText 
+                    [(ngModel)]="account.balance" 
+                    name="balance"
+                    required
+                    [disabled]="account.accountID !== ''"
+                    class="form-input"
+                    placeholder="0.00"
+                    min="0"
+                    step="0.01"
+                  />
+                  <small class="field-note" *ngIf="account.accountID !== ''">
+                    Balance cannot be manually changed
+                  </small>
                 </div>
-                <br>
-                <div class="p-field p-col-12 p-md-6">
-                    <label for="status">Account Status</label>&nbsp;
-                    <p-checkbox id="status" title="close account"  [(ngModel)]="account.status" [binary]="true" (ngModelChange)="closeAccount()"></p-checkbox>
+              </div>
+              
+              <!-- Row 3: Account Status & Active Status -->
+              <div class="form-row">
+                <div class="form-group status-group">
+                  <label class="form-label">Account Status</label>
+                  <div class="status-control">
+                    <p-checkbox 
+                      id="status" 
+                      [(ngModel)]="account.status" 
+                      name="status"
+                      [binary]="true" 
+                      (ngModelChange)="closeAccount()"
+                      class="status-checkbox"
+                    ></p-checkbox>
+                    <span class="status-label">{{ account.status ? 'Closed' : 'Open' }}</span>
+                  </div>
+                  <small class="field-note">
+                    Check to close account, uncheck to reopen
+                  </small>
                 </div>
-                <br>
-                <div class="p-field p-col-12 p-md-6">
-                    <label for="activeInd">Active</label>&nbsp;
-                    <p-checkbox id="activeInd" [disabled]="isAdmin" title="Deactivate account permanently" [(ngModel)]="account.activeInd" [binary]="true" (ngModelChange)="deactivateAccount()"></p-checkbox>
+                
+                <div class="form-group status-group">
+                  <label class="form-label">Active Status</label>
+                  <div class="status-control">
+                    <p-checkbox 
+                      id="activeInd" 
+                      [(ngModel)]="account.activeInd" 
+                      name="activeInd"
+                      [binary]="true" 
+                      (ngModelChange)="deactivateAccount()"
+                      [disabled]="!isAdmin"
+                      class="status-checkbox"
+                    ></p-checkbox>
+                    <span class="status-label">{{ account.activeInd ? 'Active' : 'Inactive' }}</span>
+                  </div>
+                  <small class="field-note" *ngIf="!isAdmin">
+                    Only administrators can deactivate accounts
+                  </small>
                 </div>
-                <hr>
-                <div class="p-field p-col-12">
-                    <div class="button-group">
-                        <button pButton icon="pi pi-save" class="p-button-success" type="button" label="Save"
-                            (click)="createAccount()"></button>
-                        <button pButton icon="pi pi-arrow-circle-left" type="button" label="Back to List"
-                            (click)="navigateToDetails()"></button>
-                    </div>
-                </div>
+              </div>
             </div>
-        </p-card>
+            
+            <!-- Action Buttons -->
+            <div class="form-actions">
+              <button 
+                pButton 
+                type="button" 
+                icon="pi pi-save" 
+                label="Save Account" 
+                class="save-button"
+                (click)="createAccount()"
+                [disabled]="!isFormValid()"
+              ></button>
+              
+              <button 
+                pButton 
+                type="button" 
+                icon="pi pi-arrow-left" 
+                label="Back to List" 
+                class="back-button"
+                (click)="navigateToDetails()"
+              ></button>
+            </div>
+          </form>
+        </div>
+      </div>
+      
+      <!-- Right Column: Transactions List -->
+      <div class="right-column" *ngIf="account.accountID">
+        <div class="transactions-card">
+          <div class="card-header">
+            <h2 class="card-title">Transactions</h2>
+            <p class="card-description">Manage account transactions</p>
+          </div>
+          
+          <div class="transactions-content">
+            <app-transaction-listing 
+              [accountId]="account.accountID" 
+              (refreshAccount)="refresh()">
+            </app-transaction-listing>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Placeholder when no account selected -->
+      <div class="right-column" *ngIf="!account.accountID">
+        <div class="placeholder-card">
+          <div class="placeholder-icon">
+            <i class="pi pi-credit-card"></i>
+          </div>
+          <h3>No Account Selected</h3>
+          <p>Create or select an account to manage transactions</p>
+        </div>
+      </div>
     </div>
-    <div class="transactions-list-container" *ngIf="account.accountID">
-        <app-transaction-listing [accountId]="account.accountID" (refreshAccount)="refresh()"></app-transaction-listing>
-    </div>
+  </div>
 </div>

@@ -101,7 +101,7 @@ export class PersonsDetailsComponent implements OnInit {
 
   navigateToDetails(): void {
     if (this.person.PersonId) {
-      this.router.navigate(['/accounts-list', this.person.PersonId]);
+      this.router.navigate(['/person-list']);
     }
   }
 
