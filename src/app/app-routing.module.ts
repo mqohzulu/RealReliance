@@ -25,6 +25,7 @@ const routes: Routes = [
   { path: 'transaction-list', component: TransactionListingComponent, canActivate:[AuthGuard] },
   { path: 'person-list', component: PersonsListingComponent, canActivate:[AuthGuard] },
   { path: 'person-details', component: PersonsDetailsComponent, canActivate:[AuthGuard] },
+  { path: 'person-details/my-profile', component: PersonsDetailsComponent, canActivate:[AuthGuard] },
   { path: 'accounts-list', component: AccountsListingComponent, canActivate:[AuthGuard] },
   { path: 'transaction', component: TransactionDetailsComponent, canActivate:[AuthGuard] },
   { path: 'account-details', component: AccountsDetailsComponent, canActivate:[AuthGuard] },

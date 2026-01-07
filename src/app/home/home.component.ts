@@ -55,13 +55,10 @@ export class HomeComponent implements OnInit {
       ]
     };
 
-    // Setup Doughnut Chart Data
     this.setupDoughnutChart(data);
     
-    // Setup Line Chart Data
     this.setupLineChart(data);
-    
-    // Setup Bar Chart Data
+ 
     this.setupBarChart(data);
   }
 

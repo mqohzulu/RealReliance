@@ -1,0 +1,135 @@
+/* User info styling */
+.user-info-menu-item {
+  margin-left: auto !important;
+  background-color: #f8f9fa !important;
+  border-left: 1px solid #dee2e6 !important;
+}
+
+.user-info-menu-item .p-menuitem-text {
+  font-weight: 600 !important;
+  color: #0189b5 !important;
+}
+
+.user-email-item .p-menuitem-text {
+  color: #6c757d !important;
+  font-size: 0.9rem !important;
+}
+
+.admin-role .p-menuitem-text {
+  color: #28a745 !important;
+  font-weight: 600 !important;
+}
+
+.user-role .p-menuitem-text {
+  color: #17a2b8 !important;
+}
+
+/* Or if you're using a separate user display */
+.user-display-container {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  padding: 0 1rem;
+  gap: 0.75rem;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #0189b5;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+}
+
+.user-name {
+  font-weight: 600;
+  color: #0189b5;
+}
+
+.user-email {
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+.user-role {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.1rem 0.5rem;
+  border-radius: 10px;
+  background-color: #e8f4fd;
+  color: #0189b5;
+}
+
+.user-role.admin {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+/* Menubar */
+.app-menubar {
+  border-radius: 0;
+  border: none;
+  padding: 0 1.5rem;
+}
+
+/* App Title */
+.app-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1e293b;
+  letter-spacing: 0.3px;
+}
+
+/* User Info */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  transition: background 0.2s ease;
+}
+
+.user-info:hover {
+  background: #f1f5f9;
+}
+
+/* Avatar Circle */
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #0189b5, #0ea5e9);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-avatar i {
+  color: #ffffff;
+  font-size: 0.9rem;
+}
+
+/* Username */
+.user-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #334155;
+  white-space: nowrap;
+}
+
+/* Router content */
+.app-content {
+  padding: 1.5rem;
+}

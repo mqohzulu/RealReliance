@@ -89,7 +89,6 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.authService.login(this.email, this.password).subscribe({
       next: (response: any) => {
         this.isLoading = false;
-       // this.showSuccess('Login successful!');
         
         const targetUrl = this.redirectUrl || '/home';
         setTimeout(() => {

@@ -42,8 +42,7 @@ export class AuthenticationService {
       const url = `${this.apiUrl}/Authentication/login`;
       this.http.post(url, data).pipe(
         tap(response => console.log('Login response:', response)),
-        catchError((error: HttpErrorResponse) => {
-  
+        catchError((error: HttpErrorResponse) => {  
           let errorMessage = 'An unknown error occurred';
           if (error.error instanceof ErrorEvent) {
             errorMessage = `Client-side error: ${error.error.message}`;
@@ -67,6 +66,16 @@ export class AuthenticationService {
       ).subscribe({
         next: (response: any) => {
           if (response) {
+
+          const userData = {
+            firstName: response.firstName,
+            lastName: response.lastName,
+            email: response.email,
+            role: response.role
+          };
+        
+          this.localStorageService.setItem('LogginUser', JSON.stringify(userData));
+
             this.saveToken(response.token.trim());
             this.saveUser(response.email, response.firstName, response.lastname, response.role);
             this.isAuthenticated();
@@ -105,7 +114,10 @@ export class AuthenticationService {
   public isAuthenticated(): boolean {
 
     const user = this.getUser();
-    const expires = this.getExpires() 
+    const expires = this.getExpires();
+    if(this.hasTokenExpired()){
+      this.logout();
+    }
     return user != null && !this.hasTokenExpired();
   }
 

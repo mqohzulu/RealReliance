@@ -7,6 +7,8 @@ import { Subscription } from 'rxjs';
 import { Account, CreateAccountCommand } from '../interfaces/Accounts-models';
 import { ApiAccountsService } from '../services/api-accounts.service';
 import { AuthenticationService } from '../services/authentication.service';
+import { LocalStorageService } from '../services/local-storage.service';
+import { UserServiceService } from '../services/user-service.service';
 
 @Component({
   selector: 'app-accounts-details',
@@ -19,17 +21,11 @@ export class AccountsDetailsComponent implements OnInit, OnDestroy {
   personID: string | null = null;
   createdAccountId: string = '';
   isAdmin: boolean = false;
+  user: any;
+  userId: number | null = null;
+  userName: string | null = null;
+  userRole: string | null = null;
   
-  public account: Account = {
-    accountID: "",
-    accountNumber: "",
-    accountType: "",
-    activeInd: true,
-    balance: 0,
-    personID: "",
-    status: false
-  };
-
   public accountTypes: any[] = [
     { label: 'Checking', value: 'Checking' },
     { label: 'Savings', value: 'Savings' },
@@ -45,6 +41,7 @@ export class AccountsDetailsComponent implements OnInit, OnDestroy {
   lastTransactionDate: Date | null = null;
   
   private routeSub: Subscription | undefined;
+  private userSub: Subscription | undefined;
 
   constructor(
     private messageService: MessageService,
@@ -53,7 +50,8 @@ export class AccountsDetailsComponent implements OnInit, OnDestroy {
     private authService: AuthenticationService,
     private confirmationService: ConfirmationService,
     private apiAccount: ApiAccountsService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private userService: UserServiceService
   ) {
     // Initialize form
     this.accountForm = this.createForm();
@@ -78,19 +76,21 @@ export class AccountsDetailsComponent implements OnInit, OnDestroy {
     if (this.routeSub) {
       this.routeSub.unsubscribe();
     }
+    if (this.userSub) {
+      this.userSub.unsubscribe();
+    }
   }
 
   private createForm(): FormGroup {
     return this.fb.group({
       accountNumber: ['', [
         Validators.required,
-        Validators.pattern('^[0-9]{10,20}$') // Adjust pattern as needed
+        Validators.pattern('^[0-9]{10,20}$')
       ]],
       accountType: ['', Validators.required],
       balance: [0, [
         Validators.required,
-        Validators.min(0),
-        Validators.pattern('^[0-9]+(\.[0-9]{1,2})?$')
+        Validators.min(0)
       ]],
       status: [false],
       activeInd: [true]
@@ -98,14 +98,33 @@ export class AccountsDetailsComponent implements OnInit, OnDestroy {
   }
 
   checkUserRole(): void {
-    const user = this.authService.getUser();
-    this.isAdmin = user === 'Admin' || user === 'admin';
+    const userData = this.userService.currentUserValue;
+    
+    if (userData) {
+      this.user = userData;
+      this.userId = userData.id || userData.userId;
+      this.userName = `${userData.firstName} ${userData.lastName}`;
+      this.userRole = userData.role;
+      this.isAdmin = userData.role === 'Admin';
+    }
+
+    this.userSub = this.userService.currentUser.subscribe(user => {
+      if (user) {
+        this.user = user;
+        this.userId = user.id || user.userId;
+        this.userName = `${user.firstName} ${user.lastName}`;
+        this.userRole = user.role;
+        this.isAdmin = user.role === 'Admin';
+      }
+    });
   }
 
   refresh(): void {
-    this.getAccountDetailsbyId();
     if (this.accountID) {
+      this.getAccountDetailsbyId();
       this.getTransactionSummary();
+    } else {
+      this.resetForm();
     }
   }
 
@@ -118,8 +137,7 @@ export class AccountsDetailsComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.apiAccount.getAccountById(this.accountID).subscribe({
       next: (data: Account) => {
-        this.account = data;
-        this.patchFormValues();
+        this.patchFormValues(data);
         this.loading = false;
       },
       error: (error) => {
@@ -134,18 +152,18 @@ export class AccountsDetailsComponent implements OnInit, OnDestroy {
     });
   }
 
-  private patchFormValues(): void {
+  private patchFormValues(account: Account): void {
     this.accountForm.patchValue({
-      accountNumber: this.account.accountNumber,
-      accountType: this.account.accountType,
-      balance: this.account.balance,
-      status: this.account.status,
-      activeInd: this.account.activeInd
+      accountNumber: account.accountNumber,
+      accountType: account.accountType,
+      balance: account.balance,
+      status: account.status,
+      activeInd: account.activeInd
     });
 
-    // Disable fields that shouldn't be edited
     if (this.isEditMode) {
       this.accountForm.get('accountNumber')?.disable();
+      this.accountForm.get('accountType')?.disable();
       this.accountForm.get('balance')?.disable();
     }
   }
@@ -158,19 +176,14 @@ export class AccountsDetailsComponent implements OnInit, OnDestroy {
       status: false,
       activeInd: true
     });
+    
     this.accountForm.get('accountNumber')?.enable();
+    this.accountForm.get('accountType')?.enable();
     this.accountForm.get('balance')?.enable();
   }
 
   getTransactionSummary(): void {
-    // Implement this method based on your transaction service
-    // Example:
-    // this.apiAccount.getTransactionSummary(this.accountID).subscribe({
-    //   next: (summary) => {
-    //     this.transactionCount = summary.count;
-    //     this.lastTransactionDate = summary.lastTransactionDate;
-    //   }
-    // });
+    // Implement based on your transaction service
   }
 
   navigateToDetails(): void {
@@ -185,16 +198,10 @@ export class AccountsDetailsComponent implements OnInit, OnDestroy {
 
   closeAccount(): void {
     if (!this.accountID) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Warning',
-        detail: 'Account ID is required'
-      });
       return;
     }
 
-    const isClosing = !this.account.status;
-    const action = isClosing ? 'close' : 'reopen';
+    const isClosing = this.accountForm.get('status')?.value;
     const message = isClosing 
       ? 'Are you sure you want to close this account?'
       : 'Are you sure you want to reopen this account?';
@@ -211,9 +218,7 @@ export class AccountsDetailsComponent implements OnInit, OnDestroy {
         }
       },
       reject: () => {
-        // Revert the checkbox change
-        this.account.status = !this.account.status;
-        this.accountForm.get('status')?.setValue(!isClosing);
+        this.accountForm.get('status')?.setValue(!isClosing, { emitEvent: false });
       }
     });
   }
@@ -231,9 +236,7 @@ export class AccountsDetailsComponent implements OnInit, OnDestroy {
         this.loading = false;
       },
       error: (error) => {
-        // Revert on error
-        this.account.status = false;
-        this.accountForm.get('status')?.setValue(false);
+        this.accountForm.get('status')?.setValue(false, { emitEvent: false });
         
         this.messageService.add({
           severity: 'error',
@@ -248,40 +251,16 @@ export class AccountsDetailsComponent implements OnInit, OnDestroy {
 
   private performReopenAccount(): void {
     this.loading = true;
-    // this.apiAccount.reopenAccount(this.accountID!).subscribe({
-    //   next: (data: any) => {
-    //     this.messageService.add({
-    //       severity: 'success',
-    //       summary: 'Success', 
-    //       detail: 'Account successfully reopened'
-    //     });
-    //     this.refresh();
-    //     this.loading = false;
-    //   },
-    //   error: (error) => {
-    //     // Revert on error
-    //     this.account.status = true;
-    //     this.accountForm.get('status')?.setValue(true);
-        
-    //     this.messageService.add({
-    //       severity: 'error',
-    //       summary: 'Error',
-    //       detail: error.error?.message || 'Failed to reopen account'
-    //     });
-    //     this.loading = false;
-    //     console.error('Error reopening account:', error);
-    //   }
-    // });
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Info',
+      detail: 'Reopen API not yet implemented'
+    });
     this.loading = false;
   }
 
   deactivateAccount(): void {
     if (!this.accountID) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Warning',
-        detail: 'Account ID is required'
-      });
       return;
     }
 
@@ -291,13 +270,11 @@ export class AccountsDetailsComponent implements OnInit, OnDestroy {
         summary: 'Access Denied',
         detail: 'Only administrators can deactivate accounts'
       });
-      // Revert the checkbox
-      this.account.activeInd = true;
-      this.accountForm.get('activeInd')?.setValue(true);
+      this.accountForm.get('activeInd')?.setValue(true, { emitEvent: false });
       return;
     }
 
-    const isDeactivating = !this.account.activeInd;
+    const isDeactivating = !this.accountForm.get('activeInd')?.value;
     const message = isDeactivating
       ? 'Are you sure you want to permanently deactivate this account? This action cannot be undone.'
       : 'Are you sure you want to reactivate this account?';
@@ -310,9 +287,7 @@ export class AccountsDetailsComponent implements OnInit, OnDestroy {
         this.performDeactivateAccount(isDeactivating);
       },
       reject: () => {
-        // Revert the checkbox change
-        this.account.activeInd = !isDeactivating;
-        this.accountForm.get('activeInd')?.setValue(!isDeactivating);
+        this.accountForm.get('activeInd')?.setValue(!isDeactivating, { emitEvent: false });
       }
     });
   }
@@ -332,9 +307,7 @@ export class AccountsDetailsComponent implements OnInit, OnDestroy {
           this.loading = false;
         },
         error: (error) => {
-          // Revert on error
-          this.account.activeInd = true;
-          this.accountForm.get('activeInd')?.setValue(true);
+          this.accountForm.get('activeInd')?.setValue(true, { emitEvent: false });
           
           this.messageService.add({
             severity: 'error',
@@ -346,44 +319,22 @@ export class AccountsDetailsComponent implements OnInit, OnDestroy {
         }
       });
     } else {
-      // Implement reactivate method if available
-      // this.apiAccount.reactivateAccount(this.accountID!).subscribe({
-      //   next: (data: any) => {
-      //     this.messageService.add({
-      //       severity: 'success',
-      //       summary: 'Success',
-      //       detail: 'Account successfully reactivated'
-      //     });
-      //     this.refresh();
-      //     this.loading = false;
-      //   },
-      //   error: (error) => {
-      //     // Revert on error
-      //     this.account.activeInd = false;
-      //     this.accountForm.get('activeInd')?.setValue(false);
-          
-      //     this.messageService.add({
-      //       severity: 'error',
-      //       summary: 'Error',
-      //       detail: error.error?.message || 'Failed to reactivate account'
-      //     });
-      //     this.loading = false;
-      //     console.error('Error reactivating account:', error);
-      //   }
-      // });
+      this.messageService.add({
+        severity: 'info',
+        summary: 'Info',
+        detail: 'Reactivate API not yet implemented'
+      });
+      this.loading = false;
     }
-  }
-
-  isFormValid(): boolean {
-    if (this.isEditMode) {
-      // For edit mode, only status and activeInd might be editable
-      return this.accountForm.get('accountType')?.valid || true;
-    }
-    
-    return this.accountForm.valid;
   }
 
   createAccount(): void {
+    console.log('=== CREATE ACCOUNT DEBUG ===');
+    console.log('personID:', this.personID);
+    console.log('Form valid:', this.accountForm.valid);
+    console.log('Form value:', this.accountForm.value);
+    console.log('Form raw value:', this.accountForm.getRawValue());
+    
     if (!this.personID) {
       this.messageService.add({
         severity: 'error',
@@ -393,12 +344,22 @@ export class AccountsDetailsComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Mark all fields as touched to show validation errors
+    this.markFormGroupTouched(this.accountForm);
+
     if (!this.accountForm.valid) {
-      this.markFormGroupTouched(this.accountForm);
       this.messageService.add({
         severity: 'error',
         summary: 'Validation Error',
         detail: 'Please fill all required fields correctly'
+      });
+      
+      // Log validation errors
+      Object.keys(this.accountForm.controls).forEach(key => {
+        const control = this.accountForm.get(key);
+        if (control?.errors) {
+          console.log(`${key} errors:`, control.errors);
+        }
       });
       return;
     }
@@ -409,47 +370,54 @@ export class AccountsDetailsComponent implements OnInit, OnDestroy {
       PersonId: this.personID,
       AccountNumber: formValues.accountNumber,
       AccountType: formValues.accountType,
-      Balance: formValues.balance,
+      Balance: Number(formValues.balance),
       IsClosed: formValues.status,
       ActiveInd: formValues.activeInd
     };
+
+    console.log('Sending command:', JSON.stringify(command, null, 2));
 
     this.loading = true;
     this.apiAccount.createAccount(command).subscribe({
       next: (data: string) => {
         this.createdAccountId = data;
+        console.log('Account created with ID:', data);
+        
         this.messageService.add({
           severity: 'success',
           summary: 'Success',
           detail: 'Account successfully created'
         });
         
-        // Update local account with new ID
         this.accountID = data;
         this.isEditMode = true;
         
-        // Refresh to load the newly created account
-        this.refresh();
-        
-        // Enable disabled fields for edit mode
-        this.accountForm.get('accountNumber')?.disable();
-        this.accountForm.get('balance')?.disable();
+        // Navigate to edit mode with the new account ID
+        this.router.navigate([], {
+          relativeTo: this.activateRoutes,
+          queryParams: { 
+            account_id: data,
+            person_id: this.personID 
+          },
+          queryParamsHandling: 'merge'
+        });
         
         this.loading = false;
       },
       error: (error) => {
+        console.error('Error creating account:', error);
+        console.error('Error details:', JSON.stringify(error, null, 2));
+        
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: error.error?.message || 'Failed to create account'
+          detail: error.error?.message || error.message || 'Failed to create account'
         });
         this.loading = false;
-        console.error('Error creating account:', error);
       }
     });
   }
 
-  // Helper method to mark all form controls as touched
   private markFormGroupTouched(formGroup: FormGroup): void {
     Object.values(formGroup.controls).forEach(control => {
       control.markAsTouched();
@@ -459,52 +427,21 @@ export class AccountsDetailsComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Getter for form controls (for template access)
   get f() {
     return this.accountForm.controls;
   }
 
-  // Helper methods for template
-  getAccountNumberError(): string {
-    const control = this.accountForm.get('accountNumber');
-    if (control?.errors?.['required']) return 'Account number is required';
-    if (control?.errors?.['pattern']) return 'Invalid account number format';
-    return '';
-  }
-
-  getBalanceError(): string {
-    const control = this.accountForm.get('balance');
-    if (control?.errors?.['required']) return 'Balance is required';
-    if (control?.errors?.['min']) return 'Balance cannot be negative';
-    if (control?.errors?.['pattern']) return 'Invalid balance format';
-    return '';
-  }
-
-  // Additional helper methods
-  getAccountTypeLabel(type: string): string {
-    const found = this.accountTypes.find(t => t.value === type);
-    return found ? found.label : type;
-  }
-
-  formatBalance(balance: number): string {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(balance);
-  }
-
-  // Method to handle form submission from template
-  onSubmit(): void {
-    if (this.isEditMode) {
-      this.updateAccount();
-    } else {
-      this.createAccount();
-    }
-  }
-
-  updateAccount(): void {
-    // Implement update logic if needed
-    // This would require an updateAccount API method
-    console.log('Update account logic would go here');
+  // Expose account property for the template
+  get account() {
+    const formValues = this.accountForm.getRawValue();
+    return {
+      accountID: this.accountID || '',
+      accountNumber: formValues.accountNumber,
+      accountType: formValues.accountType,
+      balance: formValues.balance,
+      status: formValues.status,
+      activeInd: formValues.activeInd,
+      personID: this.personID || ''
+    };
   }
 }

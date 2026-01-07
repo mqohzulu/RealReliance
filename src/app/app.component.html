@@ -1,10 +1,25 @@
-<p-menubar [model]="menuItems" *ngIf="authenticated">
+<p-menubar [model]="menuItems" *ngIf="authenticated" class="app-menubar">
+  <!-- Left: App Title -->
   <ng-template pTemplate="start">
-    <div class="text-xl font-bold mr-3 text-color-secondary"> {{title}}</div>
+    <div class="app-title">
+      {{ title }}
+    </div>
+  </ng-template>
+
+  <!-- Right: Logged-in User -->
+  <ng-template pTemplate="end">
+    <div class="user-info">
+      <div class="user-avatar">
+        <i class="pi pi-user"></i>
+      </div>
+      <span class="user-name">{{ userName }}</span>
+    </div>
   </ng-template>
 </p-menubar>
+
 <p-toast />
 <p-confirmDialog />
-<div class="flex justify-content-center">
+
+<div class="app-content">
   <router-outlet></router-outlet>
 </div>

@@ -34,7 +34,6 @@ export class ContactsComponent implements OnInit {
     if (this.contactForm.valid) {
       this.isSubmitting = true;
 
-      // Simulate API call with setTimeout
       setTimeout(() => {
         this.messageService.add({
           severity: 'success',
@@ -45,10 +44,8 @@ export class ContactsComponent implements OnInit {
 
         console.log('Form submitted:', this.contactForm.value);
         
-        // Send email using mailto (opens user's email client)
         this.sendEmail();
 
-        // Reset form after successful submission
         this.contactForm.reset();
         this.isSubmitting = false;
       }, 1500);
@@ -74,7 +71,6 @@ export class ContactsComponent implements OnInit {
       //   }
       // );
     } else {
-      // Mark all fields as touched to show validation errors
       Object.keys(this.contactForm.controls).forEach(key => {
         this.contactForm.get(key)?.markAsTouched();
       });
@@ -98,17 +94,14 @@ export class ContactsComponent implements OnInit {
       `Message:\n${formData.message}`
     );
     
-    // This opens the user's email client with pre-filled information
-    window.location.href = `mailto:info@reliance.co.za?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:mqohzulu@outlook.com?subject=${subject}&body=${body}`;
   }
 
-  // Helper method to check if a field has an error
   hasError(fieldName: string): boolean {
     const field = this.contactForm.get(fieldName);
     return !!(field && field.invalid && field.touched);
   }
 
-  // Helper method to get specific error message
   getErrorMessage(fieldName: string): string {
     const field = this.contactForm.get(fieldName);
     

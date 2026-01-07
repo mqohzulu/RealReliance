@@ -17,7 +17,7 @@
             <p class="card-description">Fill in the account details below</p>
           </div>
           
-          <form class="account-form">
+          <form [formGroup]="accountForm" class="account-form">
             <div class="form-grid">
               <!-- Row 1: Account Number & Account Type -->
               <div class="form-row">
@@ -29,15 +29,18 @@
                     id="accountNumber" 
                     type="text" 
                     pInputText 
-                    [(ngModel)]="account.accountNumber" 
-                    name="accountNumber"
-                    required
-                    [disabled]="account.accountID !== ''"
+                    formControlName="accountNumber"
                     class="form-input"
                     placeholder="Enter account number"
                   />
                   <small class="field-note" *ngIf="account.accountID !== ''">
                     Account number cannot be changed once saved
+                  </small>
+                  <small class="p-error" *ngIf="f['accountNumber'].touched && f['accountNumber'].errors?.['required']">
+                    Account number is required
+                  </small>
+                  <small class="p-error" *ngIf="f['accountNumber'].touched && f['accountNumber'].errors?.['pattern']">
+                    Account number must be 10-20 digits
                   </small>
                 </div>
                 
@@ -48,12 +51,13 @@
                   <p-dropdown 
                     id="accountType" 
                     [options]="accountTypes" 
-                    [(ngModel)]="account.accountType" 
-                    name="accountType"
+                    formControlName="accountType"
                     placeholder="Select account type"
-                    [disabled]="account.accountID !== ''"
                     class="form-dropdown"
                   ></p-dropdown>
+                  <small class="p-error" *ngIf="f['accountType'].touched && f['accountType'].errors?.['required']">
+                    Account type is required
+                  </small>
                 </div>
               </div>
               
@@ -67,10 +71,7 @@
                     id="balance" 
                     type="number" 
                     pInputText 
-                    [(ngModel)]="account.balance" 
-                    name="balance"
-                    required
-                    [disabled]="account.accountID !== ''"
+                    formControlName="balance"
                     class="form-input"
                     placeholder="0.00"
                     min="0"
@@ -78,6 +79,12 @@
                   />
                   <small class="field-note" *ngIf="account.accountID !== ''">
                     Balance cannot be manually changed
+                  </small>
+                  <small class="p-error" *ngIf="f['balance'].touched && f['balance'].errors?.['required']">
+                    Balance is required
+                  </small>
+                  <small class="p-error" *ngIf="f['balance'].touched && f['balance'].errors?.['min']">
+                    Balance cannot be negative
                   </small>
                 </div>
               </div>
@@ -89,13 +96,12 @@
                   <div class="status-control">
                     <p-checkbox 
                       id="status" 
-                      [(ngModel)]="account.status" 
-                      name="status"
+                      formControlName="status"
                       [binary]="true" 
-                      (ngModelChange)="closeAccount()"
+                      (onChange)="closeAccount()"
                       class="status-checkbox"
                     ></p-checkbox>
-                    <span class="status-label">{{ account.status ? 'Closed' : 'Open' }}</span>
+                    <span class="status-label">{{ f['status'].value ? 'Closed' : 'Open' }}</span>
                   </div>
                   <small class="field-note">
                     Check to close account, uncheck to reopen
@@ -107,14 +113,13 @@
                   <div class="status-control">
                     <p-checkbox 
                       id="activeInd" 
-                      [(ngModel)]="account.activeInd" 
-                      name="activeInd"
+                      formControlName="activeInd"
                       [binary]="true" 
-                      (ngModelChange)="deactivateAccount()"
+                      (onChange)="deactivateAccount()"
                       [disabled]="!isAdmin"
                       class="status-checkbox"
                     ></p-checkbox>
-                    <span class="status-label">{{ account.activeInd ? 'Active' : 'Inactive' }}</span>
+                    <span class="status-label">{{ f['activeInd'].value ? 'Active' : 'Inactive' }}</span>
                   </div>
                   <small class="field-note" *ngIf="!isAdmin">
                     Only administrators can deactivate accounts
@@ -132,7 +137,8 @@
                 label="Save Account" 
                 class="save-button"
                 (click)="createAccount()"
-                [disabled]="!isFormValid()"
+                [disabled]="loading"
+                [loading]="loading"
               ></button>
               
               <button 
@@ -142,6 +148,7 @@
                 label="Back to List" 
                 class="back-button"
                 (click)="navigateToDetails()"
+                [disabled]="loading"
               ></button>
             </div>
           </form>
@@ -178,3 +185,6 @@
     </div>
   </div>
 </div>
+
+<p-confirmDialog></p-confirmDialog>
+<p-toast></p-toast>
