@@ -197,4 +197,178 @@ export class AuthenticationService {
       });
     });
   }
+
+  forgotPassword(email: string): Observable<any> {
+  return new Observable(observer => {
+    const data = {
+      email: email
+    };
+    
+    const url = `${this.apiUrl}/Authentication/forgot-password`;
+    
+    this.http.post(url, data).pipe(
+      tap(response => console.log('Forgot password response:', response)),
+      catchError((error: HttpErrorResponse) => {
+        let errorMessage = 'An unknown error occurred';
+        
+        if (error.error instanceof ErrorEvent) {
+          errorMessage = `Client-side error: ${error.error.message}`;
+        } else if (error.status === 404) {
+          errorMessage = 'No account found with this email address';
+        } else if (error.status === 429) {
+          errorMessage = 'Too many password reset attempts. Please try again later.';
+        } else if (error.status === 400) {
+          errorMessage = error.error?.message || 'Invalid email format';
+        } else {
+          errorMessage = `Server-side error: ${error.status} ${error.statusText}`;
+          if (error.status === 0) {
+            errorMessage += '\nPossible causes: Server is down, Network issue, or CORS problem';
+          }
+        }
+
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Password Reset Failed',
+          detail: errorMessage
+        });
+
+        return throwError(() => new Error(errorMessage));
+      })
+    ).subscribe({
+      next: (response: any) => {
+        // Show success message
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Password Reset',
+          detail: 'Password reset instructions have been sent to your email'
+        });
+        
+        observer.next(response);
+        observer.complete();
+      },
+      error: (error) => {
+        observer.error(error);
+      }
+    });
+  });
+}
+
+resetPassword(token: string, newPassword: string, confirmPassword: string): Observable<any> {
+  return new Observable(observer => {
+    const data = {
+      token: token,
+      newPassword: newPassword,
+      confirmPassword: confirmPassword
+    };
+    
+    const url = `${this.apiUrl}/Authentication/reset-password`;
+    
+    this.http.post(url, data).pipe(
+      tap(response => console.log('Reset password response:', response)),
+      catchError((error: HttpErrorResponse) => {
+        let errorMessage = 'An unknown error occurred';
+        
+        if (error.error instanceof ErrorEvent) {
+          errorMessage = `Client-side error: ${error.error.message}`;
+        } else if (error.status === 400) {
+          errorMessage = error.error?.message || 'Invalid or expired reset token';
+        } else if (error.status === 401) {
+          errorMessage = 'Password reset token has expired. Please request a new one.';
+        } else {
+          errorMessage = `Server-side error: ${error.status} ${error.statusText}`;
+        }
+
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Password Reset Failed',
+          detail: errorMessage
+        });
+
+        return throwError(() => new Error(errorMessage));
+      })
+    ).subscribe({
+      next: (response: any) => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Your password has been successfully reset. You can now login with your new password.'
+        });
+        
+        observer.next(response);
+        observer.complete();
+      },
+      error: (error) => {
+        observer.error(error);
+      }
+    });
+  });
+}
+
+changePassword(currentPassword: string, newPassword: string, confirmPassword: string): Observable<any> {
+  return new Observable(observer => {
+    const token = this.getToken();
+    
+    if (!token) {
+      const error = new Error('No authentication token found');
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Change Password Failed',
+        detail: 'You must be logged in to change your password'
+      });
+      observer.error(error);
+      return;
+    }
+    
+    const data = {
+      currentPassword: currentPassword,
+      newPassword: newPassword,
+      confirmPassword: confirmPassword
+    };
+    
+    const url = `${this.apiUrl}/Authentication/change-password`;
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    };
+    
+    this.http.post(url, data, { headers }).pipe(
+      tap(response => console.log('Change password response:', response)),
+      catchError((error: HttpErrorResponse) => {
+        let errorMessage = 'An unknown error occurred';
+        
+        if (error.error instanceof ErrorEvent) {
+          errorMessage = `Client-side error: ${error.error.message}`;
+        } else if (error.status === 400) {
+          errorMessage = error.error?.message || 'Invalid current password';
+        } else if (error.status === 401) {
+          errorMessage = 'Your session has expired. Please login again.';
+        } else {
+          errorMessage = `Server-side error: ${error.status} ${error.statusText}`;
+        }
+
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Change Password Failed',
+          detail: errorMessage
+        });
+
+        return throwError(() => new Error(errorMessage));
+      })
+    ).subscribe({
+      next: (response: any) => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Your password has been successfully changed.'
+        });
+        
+        observer.next(response);
+        observer.complete();
+      },
+      error: (error) => {
+        observer.error(error);
+      }
+    });
+  });
+}
 }

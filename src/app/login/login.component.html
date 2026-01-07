@@ -1,24 +1,282 @@
-<div *ngIf="!isAuthenticated">
-    <div class="login-container">
-        <p-card header="Login" [style]="{width:'400px'}">
-            <div class="field grid">
-                <label for="email" class="col-fixed" style="width:100px">Email</label>
-                <div class="col">
-                    <input id="email" style="width:360px" pInputText type="text" [(ngModel)]="email" />
+<div *ngIf="!isAuthenticated" class="auth-wrapper">
+    <div class="auth-container" [class.register-mode]="isRegisterMode">
+        <!-- Background Animation -->
+        <div class="background-animation">
+            <div class="circle circle-1"></div>
+            <div class="circle circle-2"></div>
+            <div class="circle circle-3"></div>
+        </div>
+        
+        <!-- Auth Card -->
+        <div class="auth-card">
+            <!-- Logo/Brand -->
+            <div class="brand-section">
+                <div class="brand-icon">
+                    <i class="pi pi-shield"></i>
                 </div>
+                <h1 class="brand-name">RealReliance Banking</h1>
             </div>
-            <br>
-            <div class="field grid">
-                <label for="password" class="col-fixed" style="width:200px">Password</label>
-                <div class="col">
-                    <input id="password" style="width:360px" pInputText type="password" [(ngModel)]="password" />
+
+            <!-- Toggle Switch -->
+            <div class="auth-toggle">
+                <button class="toggle-btn" 
+                        [class.active]="!isRegisterMode"
+                        (click)="toggleMode(false)">
+                    <i class="pi pi-sign-in"></i>
+                    <span>Login</span>
+                </button>
+                <button class="toggle-btn"
+                        [class.active]="isRegisterMode"
+                        (click)="toggleMode(true)">
+                    <i class="pi pi-user-plus"></i>
+                    <span>Register</span>
+                </button>
+                <div class="toggle-slider" [class.register]="isRegisterMode"></div>
+            </div>
+
+            <!-- Login Form -->
+            <div class="form-container login-form" [class.hidden]="isRegisterMode">
+                <div class="form-header">
+                    <h2>Welcome Back</h2>
+                    <p>Please sign in to continue</p>
                 </div>
+                
+                <form class="auth-form" (ngSubmit)="login()" #loginForm="ngForm">
+                    <div class="form-group">
+                        <label for="email" class="form-label">
+                            <i class="pi pi-envelope"></i>
+                            Email Address
+                        </label>
+                        <input id="email" 
+                               type="email" 
+                               pInputText 
+                               [(ngModel)]="email" 
+                               name="email"
+                               required
+                               class="form-input"
+                               placeholder="your.email@example.com"
+                               [class.error]="loginForm.submitted && !email">
+                        <small class="error-text" *ngIf="loginForm.submitted && !email">
+                            Email is required
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password" class="form-label">
+                            <i class="pi pi-lock"></i>
+                            Password
+                        </label>
+                        <input id="password" 
+                               type="password" 
+                               pInputText 
+                               [(ngModel)]="password" 
+                               name="password"
+                               required
+                               class="form-input"
+                               placeholder="Enter your password"
+                               [class.error]="loginForm.submitted && !password">
+                        <small class="error-text" *ngIf="loginForm.submitted && !password">
+                            Password is required
+                        </small>
+                    </div>
+
+                    <div class="form-footer">
+                        <a class="forgot-password" (click)="forgotPassword()">
+                            Forgot your password?
+                        </a>
+                    </div>
+
+                    <button type="submit" class="submit-btn" [disabled]="isLoading">
+                        <span *ngIf="!isLoading">
+                            <i class="pi pi-sign-in"></i>
+                            <span>Sign In</span>
+                        </span>
+                        <span *ngIf="isLoading" class="loading-content">
+                            <i class="pi pi-spinner pi-spin"></i>
+                            <span>Signing In...</span>
+                        </span>
+                    </button>
+
+                    <div class="switch-mode">
+                        <span>Don't have an account?</span>
+                        <a (click)="toggleMode(true)">Create one now</a>
+                    </div>
+                </form>
             </div>
-            <br>
-            <div style="text-align: center;">
-                <button pButton type="button" label="Login" (click)="login()" style="margin-right: 10px;"></button>
-                <button pButton type="button" label="Register" (click)="navigateToRegister()" class="p-button-secondary"></button>
+
+            <!-- Register Form -->
+            <div class="form-container register-form" [class.hidden]="!isRegisterMode">
+                <div class="form-header">
+                    <h2>Create Account</h2>
+                    <p>Join our secure banking platform</p>
+                </div>
+                
+                <form class="auth-form" (ngSubmit)="register()" #registerForm="ngForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstName" class="form-label">
+                                <i class="pi pi-user"></i>
+                                First Name
+                            </label>
+                            <input id="firstName" 
+                                   type="text" 
+                                   pInputText 
+                                   [(ngModel)]="firstName" 
+                                   name="firstName"
+                                   required
+                                   class="form-input"
+                                   placeholder="John"
+                                   [class.error]="registerForm.submitted && !firstName">
+                            <small class="error-text" *ngIf="registerForm.submitted && !firstName">
+                                Required
+                            </small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="lastName" class="form-label">
+                                <i class="pi pi-user"></i>
+                                Last Name
+                            </label>
+                            <input id="lastName" 
+                                   type="text" 
+                                   pInputText 
+                                   [(ngModel)]="lastName" 
+                                   name="lastName"
+                                   required
+                                   class="form-input"
+                                   placeholder="Doe"
+                                   [class.error]="registerForm.submitted && !lastName">
+                            <small class="error-text" *ngIf="registerForm.submitted && !lastName">
+                                Required
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="registerEmail" class="form-label">
+                            <i class="pi pi-envelope"></i>
+                            Email Address
+                        </label>
+                        <input id="registerEmail" 
+                               type="email" 
+                               pInputText 
+                               [(ngModel)]="registerEmail" 
+                               name="registerEmail"
+                               required
+                               class="form-input"
+                               placeholder="your.email@example.com"
+                               [class.error]="registerForm.submitted && (!registerEmail || !validateEmail(registerEmail))">
+                        <small class="error-text" *ngIf="registerForm.submitted && !registerEmail">
+                            Email is required
+                        </small>
+                        <small class="error-text" *ngIf="registerForm.submitted && registerEmail && !validateEmail(registerEmail)">
+                            Invalid email format
+                        </small>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="registerPassword" class="form-label">
+                                <i class="pi pi-lock"></i>
+                                Password
+                            </label>
+                            <input id="registerPassword" 
+                                   type="password" 
+                                   pInputText 
+                                   [(ngModel)]="registerPassword" 
+                                   name="registerPassword"
+                                   required
+                                   class="form-input"
+                                   placeholder="Create password"
+                                   (input)="checkPasswordStrength()"
+                                   [class.error]="registerForm.submitted && (!registerPassword || registerPassword.length < 8)">
+                            <div class="password-strength" *ngIf="registerPassword">
+                                <div class="strength-bar">
+                                    <div class="strength-fill" 
+                                         [style.width.%]="passwordStrength" 
+                                         [class]="getPasswordStrengthClass()"></div>
+                                </div>
+                                <small class="strength-text">{{ getPasswordStrengthText() }}</small>
+                            </div>
+                            <small class="error-text" *ngIf="registerForm.submitted && registerPassword && registerPassword.length < 8">
+                                Min 8 characters
+                            </small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="confirmPassword" class="form-label">
+                                <i class="pi pi-lock"></i>
+                                Confirm
+                            </label>
+                            <input id="confirmPassword" 
+                                   type="password" 
+                                   pInputText 
+                                   [(ngModel)]="confirmPassword" 
+                                   name="confirmPassword"
+                                   required
+                                   class="form-input"
+                                   placeholder="Repeat password"
+                                   [class.error]="registerForm.submitted && (!confirmPassword || registerPassword !== confirmPassword)">
+                            <small class="error-text" *ngIf="registerForm.submitted && confirmPassword && registerPassword !== confirmPassword">
+                                Passwords don't match
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="selectedRole" class="form-label">
+                            <i class="pi pi-briefcase"></i>
+                            Account Type
+                        </label>
+                        <p-dropdown id="selectedRole" 
+                                   [options]="roles" 
+                                   [(ngModel)]="selectedRole" 
+                                   name="selectedRole"
+                                   placeholder="Select your role"
+                                   [class.error]="registerForm.submitted && !selectedRole"
+                                   styleClass="w-full">
+                        </p-dropdown>
+                        <small class="error-text" *ngIf="registerForm.submitted && !selectedRole">
+                            Please select a role
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="terms-agreement" [class.error]="registerForm.submitted && !acceptTerms">
+                            <p-checkbox [(ngModel)]="acceptTerms" 
+                                       name="acceptTerms"
+                                       [binary]="true"
+                                       inputId="acceptTerms">
+                            </p-checkbox>
+                            <label for="acceptTerms" class="terms-label">
+                                I agree to the 
+                                <a (click)="showTerms()" class="terms-link">Terms & Conditions</a> 
+                                and 
+                                <a (click)="showPrivacy()" class="terms-link">Privacy Policy</a>
+                            </label>
+                        </div>
+                        <small class="error-text" *ngIf="registerForm.submitted && !acceptTerms">
+                            You must accept terms to continue
+                        </small>
+                    </div>
+
+                    <button type="submit" class="submit-btn" [disabled]="isLoading">
+                        <span *ngIf="!isLoading">
+                            <i class="pi pi-user-plus"></i>
+                            <span>Create Account</span>
+                        </span>
+                        <span *ngIf="isLoading" class="loading-content">
+                            <i class="pi pi-spinner pi-spin"></i>
+                            <span>Creating Account...</span>
+                        </span>
+                    </button>
+
+                    <div class="switch-mode">
+                        <span>Already have an account?</span>
+                        <a (click)="toggleMode(false)">Sign in instead</a>
+                    </div>
+                </form>
             </div>
-        </p-card>
+        </div>
     </div>
 </div>
