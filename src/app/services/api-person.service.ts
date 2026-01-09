@@ -135,7 +135,7 @@ export class ApiPersonService {
   };
   deletePerson(personId: string): Observable<any> {
     return new Observable(observer => {
-      this.api.get<any>("Persons/DeletePerson", { personId: personId }).subscribe(
+      this.api.delete<any>("Persons/DeletePerson", { IdNumber: personId }).subscribe(
         {
           next: (response: any) => {
             observer.next(response);

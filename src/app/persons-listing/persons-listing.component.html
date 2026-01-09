@@ -3,7 +3,9 @@
   <div class="persons-hero">
     <div class="hero-content">
       <h1 class="hero-title">Persons Management</h1>
-      <p class="hero-subtitle">View, manage, and filter all registered persons in the system.</p>
+      <p class="hero-subtitle">
+        View, manage, and filter all registered persons in the system.
+      </p>
     </div>
   </div>
 
@@ -11,29 +13,33 @@
     <div class="persons-card">
       <div class="persons-header">
         <h2 class="persons-title">Persons List</h2>
-        <p class="persons-description">Manage all registered persons, filter by status, or add new entries.</p>
-        
+        <p class="persons-description">
+          Manage all registered persons, filter by status, or add new entries.
+        </p>
+
         <div class="action-bar">
-          <button 
-            pButton 
-            severity="success" 
-            icon="pi pi-plus" 
-            label="Add New Person" 
+          <button
+            pButton
+            severity="success"
+            icon="pi pi-plus"
+            label="Add New Person"
             (click)="addPerson()"
             class="action-button"
           ></button>
-          
+
           <div class="search-filter-section">
             <!-- Search Criteria Dropdown -->
             <div class="search-criteria">
-              <label for="searchCriteria" class="criteria-label">Search By:</label>
-              <p-dropdown 
-                [(ngModel)]="searchCriteria" 
+              <label for="searchCriteria" class="criteria-label"
+                >Search By:</label
+              >
+              <p-dropdown
+                [(ngModel)]="searchCriteria"
                 [options]="[
-                  {label: 'All Fields', value: 'all'},
-                  {label: 'ID Number', value: 'idNumber'},
-                  {label: 'Surname', value: 'surname'},
-                  {label: 'Account Number', value: 'accountNumber'}
+                  { label: 'All Fields', value: 'all' },
+                  { label: 'ID Number', value: 'idNumber' },
+                  { label: 'Surname', value: 'surname' },
+                  { label: 'Account Number', value: 'accountNumber' }
                 ]"
                 optionLabel="label"
                 optionValue="value"
@@ -46,7 +52,7 @@
             <div class="search-box">
               <span class="p-input-icon-left p-input-icon-right">
                 <i class="pi pi-search"></i>
-                <input 
+                <input
                   pInputText
                   type="text"
                   [(ngModel)]="searchQuery"
@@ -54,11 +60,11 @@
                   placeholder="Search persons..."
                   class="search-input"
                 />
-                <i 
-                  *ngIf="searchQuery" 
-                  class="pi pi-times clear-icon" 
+                <i
+                  *ngIf="searchQuery"
+                  class="pi pi-times clear-icon"
                   (click)="clear()"
-                  style="cursor: pointer;"
+                  style="cursor: pointer"
                 ></i>
               </span>
             </div>
@@ -66,9 +72,9 @@
             <!-- Active Filter -->
             <div class="filter-toggle">
               <span class="filter-label">Show Active Only</span>
-              <p-checkbox 
-                [binary]="true" 
-                [(ngModel)]="active_only" 
+              <p-checkbox
+                [binary]="true"
+                [(ngModel)]="active_only"
                 (ngModelChange)="refresh()"
                 class="active-checkbox"
               ></p-checkbox>
@@ -79,10 +85,10 @@
 
       <!-- Table Section -->
       <div class="table-container">
-        <p-table 
-          [value]="filteredPersons" 
+        <p-table
+          [value]="filteredPersons"
           styleClass="persons-table"
-          [paginator]="true" 
+          [paginator]="true"
           [rows]="10"
           [showCurrentPageReport]="true"
           currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
@@ -91,44 +97,44 @@
         >
           <ng-template pTemplate="header">
             <tr>
-              <th style="width: 160px;">Actions</th>
-              <th pSortableColumn="idNumber" style="width: 180px;">
+              <th style="width: 160px">Actions</th>
+              <th pSortableColumn="idNumber" style="width: 180px">
                 <div class="column-header">
                   <span>ID Number</span>
                   <p-sortIcon field="idNumber"></p-sortIcon>
                 </div>
               </th>
-              <th pSortableColumn="firstName" style="width: 150px;">
+              <th pSortableColumn="firstName" style="width: 150px">
                 <div class="column-header">
                   <span>First Name</span>
                   <p-sortIcon field="firstName"></p-sortIcon>
                 </div>
               </th>
-              <th pSortableColumn="lastName" style="width: 150px;">
+              <th pSortableColumn="lastName" style="width: 150px">
                 <div class="column-header">
                   <span>Last Name</span>
                   <p-sortIcon field="lastName"></p-sortIcon>
                 </div>
               </th>
-              <th pSortableColumn="email" style="width: 220px;">
+              <th pSortableColumn="email" style="width: 220px">
                 <div class="column-header">
                   <span>Email</span>
                   <p-sortIcon field="email"></p-sortIcon>
                 </div>
               </th>
-              <th pSortableColumn="phoneNumber" style="width: 160px;">
+              <th pSortableColumn="phoneNumber" style="width: 160px">
                 <div class="column-header">
                   <span>Phone Number</span>
                   <p-sortIcon field="phoneNumber"></p-sortIcon>
                 </div>
               </th>
-              <th pSortableColumn="dateOfBirth" style="width: 150px;">
+              <th pSortableColumn="dateOfBirth" style="width: 150px">
                 <div class="column-header">
                   <span>Date of Birth</span>
                   <p-sortIcon field="dateOfBirth"></p-sortIcon>
                 </div>
               </th>
-              <th pSortableColumn="activeInd" style="width: 120px;">
+              <th pSortableColumn="activeInd" style="width: 120px">
                 <div class="column-header">
                   <span>Status</span>
                   <p-sortIcon field="activeInd"></p-sortIcon>
@@ -141,22 +147,22 @@
             <tr>
               <td>
                 <div class="action-buttons">
-                  <button 
-                    pButton 
-                    severity="info" 
-                    icon="pi pi-pencil" 
-                    size="small" 
+                  <button
+                    pButton
+                    severity="info"
+                    icon="pi pi-pencil"
+                    size="small"
                     title="Edit person details"
                     (click)="openEdit(person.personID)"
                     class="action-btn edit-btn"
                   ></button>
-                  <button 
-                    pButton 
-                    severity="danger" 
-                    icon="pi pi-trash" 
-                    size="small" 
+                  <button
+                    pButton
+                    severity="danger"
+                    icon="pi pi-trash"
+                    size="small"
                     title="Deactivate person"
-                    (click)="deactivate(person.idNumber)"
+                    (click)="deactivate(person.personID, person.idNumber)"
                     class="action-btn delete-btn"
                   ></button>
                 </div>
@@ -165,13 +171,19 @@
               <td>{{ person.firstName }}</td>
               <td>{{ person.lastName }}</td>
               <td>
-                <a href="mailto:{{ person.email }}" class="email-link">{{ person.email }}</a>
+                <a href="mailto:{{ person.email }}" class="email-link">{{
+                  person.email
+                }}</a>
               </td>
               <td>{{ person.phoneNumber }}</td>
-              <td>{{ person.dateOfBirth | date: 'yyyy-MM-dd' }}</td>
+              <td>{{ person.dateOfBirth | date : "yyyy-MM-dd" }}</td>
               <td>
-                <span class="status-badge" [class.active]="person.activeInd" [class.inactive]="!person.activeInd">
-                  {{ person.activeInd ? 'Active' : 'Inactive' }}
+                <span
+                  class="status-badge"
+                  [class.active]="person.activeInd"
+                  [class.inactive]="!person.activeInd"
+                >
+                  {{ person.activeInd ? "Active" : "Inactive" }}
                 </span>
               </td>
             </tr>
@@ -181,7 +193,10 @@
             <tr>
               <td colspan="8" class="empty-message">
                 <div class="empty-state">
-                  <i class="pi pi-users" style="font-size: 3rem; color: #667eea;"></i>
+                  <i
+                    class="pi pi-users"
+                    style="font-size: 3rem; color: #667eea"
+                  ></i>
                   <h3>No persons found</h3>
                   <p>No persons match your current filters.</p>
                 </div>

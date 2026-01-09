@@ -1,6 +1,15 @@
 export interface TransferFundsCommand {
-    AccountIdFrom: string; 
-    AccountIdTo: string;
+    AccountFrom: string; 
+    AccountTo: string;
     Amount: number; 
     description: string;
   }
+
+  export interface UpdateTransactionCommand {
+  transactionId: string;
+  accountId: string;
+  transactionDate: Date;
+  amount: number;
+  description: string;
+  transactionType: string;
+}

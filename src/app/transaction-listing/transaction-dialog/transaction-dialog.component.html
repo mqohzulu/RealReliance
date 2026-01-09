@@ -1,36 +1,133 @@
-<div class="p-fluid">
-    <div class="p-field">
-      <label for="transactionType"  *ngIf="editingTransaction.transactionId!==''">Transaction Date</label>
-      <p-calendar [showIcon]="true" dateFormat="dd/mm/yy" [style]="{width:'170px'}" id="transactionType"
-        [disabled]="editingTransaction.transactionId!==''" *ngIf="editingTransaction.transactionId!==''"
-        [(ngModel)]="date"></p-calendar>
+<div class="transaction-dialog-wrapper">
+  <div class="dialog-header">
+    <div class="header-icon">
+      <i class="pi pi-money-bill"></i>
     </div>
-    <div class="p-field">
-      <label for="transactionType">Transaction Type</label>
-      <p-dropdown id="transactionType" [disabled]="editingTransaction.transactionId!==''" [options]="transactionTypes"
-        [(ngModel)]="editingTransaction.transactionType" placeholder="Select a type"></p-dropdown>
-    </div>
-    <div class="p-field">
-      <label for="transactionType">Account To</label>
-      <p-dropdown id="transactionType" [disabled]="editingTransaction.transactionId!==''" optionLabel="accountNumber"
-        [filter]="true" optionValue="accountNumber" [options]="accounts" [(ngModel)]="AccountTo"
-        placeholder="Select a type"></p-dropdown>
-    </div>
-    <div class="p-field">
-      <label for="amount">Amount</label>
-      <input id="amount" pInputText [disabled]="editingTransaction.transactionId!==''"
-        [(ngModel)]="editingTransaction.amount" mode="currency" currency="ZAR" locale="en-ZA" />
-    </div>
-    <br>
-    <div class="p-field">
-      <label for="description">Description</label>
-      <textarea id="description" [disabled]="editingTransaction.transactionId!==''" pInputTextarea
-        [(ngModel)]="editingTransaction.description" rows="3"></textarea>
+    <div class="header-content">
+      <h2 class="dialog-title">
+        {{ isEditMode ? "Edit Transaction" : "New Transfer" }}
+      </h2>
+      <p class="dialog-subtitle">
+        {{
+          isEditMode
+            ? "Update transaction details"
+            : "Transfer funds to another account"
+        }}
+      </p>
     </div>
   </div>
-  <div class="col-12" style="text-align: center;">
-    <hr>
-    <p-button label="Save" severity="success" icon="pi pi-check" (onClick)="saveTransaction()"></p-button>&nbsp;&nbsp;
-    <p-button label="Cancel" icon="pi pi-times" (onClick)="hideDialog()" styleClass="p-button-text"></p-button>
-  
+
+  <div class="dialog-body">
+    <div class="p-fluid">
+      <div class="form-group" *ngIf="isEditMode">
+        <label for="transactionDate" class="form-label">
+          Transaction Date <span class="required">*</span>
+        </label>
+        <p-calendar
+          id="transactionDate"
+          [showIcon]="true"
+          dateFormat="dd/mm/yy"
+          [maxDate]="maxDate"
+          [(ngModel)]="date"
+          [disabled]="isEditMode"
+          styleClass="calendar-input"
+        ></p-calendar>
+        <small class="field-note" *ngIf="isEditMode"
+          >Transaction date cannot be changed</small
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="personSelect" class="form-label">
+          Select Recipient <span class="required">*</span>
+        </label>
+        <p-dropdown
+          id="personSelect"
+          [options]="persons"
+          [(ngModel)]="selectedPerson"
+          (onChange)="onPersonChange($event)"
+          optionLabel="displayName"
+          [filter]="true"
+          filterBy="displayName"
+          placeholder="Select recipient person"
+          styleClass="form-dropdown"
+        ></p-dropdown>
+        <small class="field-note">Select the person to transfer funds to</small>
+      </div>
+
+      <div class="form-group" *ngIf="selectedPerson">
+        <label for="accountTo" class="form-label">
+          Destination Account <span class="required">*</span>
+        </label>
+        <p-dropdown
+          id="accountTo"
+          [options]="selectedPersonAccounts"
+          [(ngModel)]="selectedAccount"
+          optionLabel="accountNumber"
+          [filter]="true"
+          placeholder="Select destination account"
+          styleClass="form-dropdown"
+        >
+          <ng-template let-account pTemplate="item">
+            <div class="account-item">
+              <span class="account-number">{{ account.accountNumber }}</span>
+            </div>
+          </ng-template>
+        </p-dropdown>
+        <small class="field-note" *ngIf="selectedPersonAccounts.length > 0">
+          Showing {{ selectedPersonAccounts.length }} active account(s)
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label for="amount" class="form-label">
+          Amount (ZAR) <span class="required">*</span>
+        </label>
+        <div class="amount-input-wrapper">
+          <span class="currency-symbol">R</span>
+          <input
+            id="amount"
+            type="number"
+            pInputText
+            [(ngModel)]="editingTransaction.amount"
+            placeholder="0.00"
+            step="0.01"
+            min="0.01"
+            class="amount-input"
+          />
+        </div>
+        <small class="field-note">Enter amount in South African Rand</small>
+      </div>
+
+      <div class="form-group">
+        <label for="description" class="form-label">Description</label>
+        <textarea
+          id="description"
+          pInputTextarea
+          [(ngModel)]="editingTransaction.description"
+          rows="3"
+          placeholder="Enter transfer description..."
+          class="form-textarea"
+        ></textarea>
+        <small class="field-note"
+          >Optional: Add a description for this transfer</small
+        >
+      </div>
+    </div>
   </div>
+
+  <div class="dialog-footer">
+    <p-button
+      label="Cancel"
+      icon="pi pi-times"
+      (onClick)="hideDialog()"
+      styleClass="cancel-button"
+    ></p-button>
+    <p-button
+      [label]="'Transfer'"
+      icon="pi pi-check"
+      (onClick)="saveTransaction()"
+      styleClass="save-button"
+    ></p-button>
+  </div>
+</div>

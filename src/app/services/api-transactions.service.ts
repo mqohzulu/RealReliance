@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { TransferFundsCommand } from '../interfaces/Transafer';
+import { TransferFundsCommand, UpdateTransactionCommand } from '../interfaces/Transafer';
 import { ApiService } from './api.service';
 import { MessageService } from 'primeng/api';
 
@@ -102,5 +102,24 @@ export class ApiTransactionsService {
       });
     });
   }
+
+  updateTransaction(command: UpdateTransactionCommand): Observable<any> {
+  return new Observable(observer => {
+    this.api.put<any>('Transaction/UpdateTransaction', command).subscribe({
+      next: (response: any) => {
+        observer.next(response);
+        observer.complete();
+      },
+      error: (error: any) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error updating transaction',
+          detail: error.error.title || error.error
+        });
+        observer.error(error);
+      }
+    });
+  });
+}
 
 }
