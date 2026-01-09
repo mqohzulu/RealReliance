@@ -119,7 +119,6 @@ export class PersonsListingComponent implements OnInit {
           });
           return;
         }
-console.log(person)
         const accounts = person.accounts;
 
         if (accounts.length === 0) {

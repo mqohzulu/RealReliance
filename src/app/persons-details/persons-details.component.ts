@@ -8,7 +8,7 @@ import { AuthenticationService } from '../services/authentication.service';
 @Component({
   selector: 'app-persons-details',
   templateUrl: './persons-details.component.html',
-  styleUrls: ['./persons-details.component.css']
+  styleUrls: ['./persons-details.component.css'],
 })
 export class PersonsDetailsComponent implements OnInit {
   personID: any;
@@ -24,7 +24,7 @@ export class PersonsDetailsComponent implements OnInit {
     PhoneNumber: '',
     Address: '',
     DateOfBirth: new Date(),
-    ActiveInd: true
+    ActiveInd: true,
   };
 
   constructor(
@@ -51,11 +51,14 @@ export class PersonsDetailsComponent implements OnInit {
       this.getPersonByEmail();
     } else {
       // Check for person_id in query params (for admin editing another person)
-      this.activateRoutes.queryParams.subscribe(params => {
+      this.activateRoutes.queryParams.subscribe((params) => {
         this.personID = params['person_id'] ?? null;
         console.log('Person ID from query:', this.personID);
 
-        if (this.personID && this.personID !== '00000000-0000-0000-0000-000000000000') {
+        if (
+          this.personID &&
+          this.personID !== '00000000-0000-0000-0000-000000000000'
+        ) {
           this.getPersonById();
         } else {
           // Clear view for adding new person
@@ -75,7 +78,7 @@ export class PersonsDetailsComponent implements OnInit {
       PhoneNumber: '',
       Address: '',
       DateOfBirth: new Date(),
-      ActiveInd: true
+      ActiveInd: true,
     };
     console.log('Initialized new person view');
   }
@@ -83,7 +86,10 @@ export class PersonsDetailsComponent implements OnInit {
   refresh(): void {
     if (this.isMyProfile) {
       this.getPersonByEmail();
-    } else if (this.personID && this.personID !== '00000000-0000-0000-0000-000000000000') {
+    } else if (
+      this.personID &&
+      this.personID !== '00000000-0000-0000-0000-000000000000'
+    ) {
       this.getPersonById();
     }
   }
@@ -101,29 +107,29 @@ export class PersonsDetailsComponent implements OnInit {
             PhoneNumber: data.phoneNumber,
             Address: data.address || '',
             DateOfBirth: new Date(data.dateOfBirth),
-            ActiveInd: data.activeInd
+            ActiveInd: data.activeInd,
           };
           console.log('Loaded person by ID:', this.person);
         },
         error: (error: Error) => {
-          this.messageService.add({ 
-            severity: 'error', 
-            summary: 'Error loading person', 
-            detail: error.message 
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error loading person',
+            detail: error.message,
           });
-        }
+        },
       });
     }
   }
 
   getPersonByEmail(): void {
     const currentUserEmail = this.authService.getUser()?.email;
-    
+
     if (!currentUserEmail) {
-      this.messageService.add({ 
-        severity: 'error', 
-        summary: 'Error', 
-        detail: 'Unable to retrieve user email' 
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Unable to retrieve user email',
       });
       return;
     }
@@ -141,35 +147,41 @@ export class PersonsDetailsComponent implements OnInit {
           PhoneNumber: data.phoneNumber,
           Address: data.address || '',
           DateOfBirth: new Date(data.dateOfBirth),
-          ActiveInd: data.activeInd
+          ActiveInd: data.activeInd,
         };
 
         if (this.person.PersonId === '00000000-0000-0000-0000-000000000000') {
-          this.messageService.add({ 
-            severity: 'info', 
-            summary: 'No profile found', 
-            detail: 'Please fill in your profile details' 
+          this.messageService.add({
+            severity: 'info',
+            summary: 'No profile found',
+            detail: 'Please fill in your profile details',
           });
         }
 
         console.log('Loaded person by email:', this.person);
       },
       error: (error: Error) => {
-        this.messageService.add({ 
-          severity: 'error', 
-          summary: 'Error loading profile', 
-          detail: error.message 
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error loading profile',
+          detail: error.message,
         });
-      }
+      },
     });
   }
 
   addNewPerson(): void {
-    if (!this.person.FirstName || !this.person.LastName || !this.person.Email) {
-      this.messageService.add({ 
-        severity: 'warn', 
-        summary: 'Validation Error', 
-        detail: 'Please fill in all required fields (First Name, Last Name, Email)' 
+    if (
+      !this.person.FirstName ||
+      !this.person.LastName ||
+      !this.person.Email ||
+      !this.person.IdNumber
+    ) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Validation Error',
+        detail:
+          'Please fill in all required fields (First Name, Last Name, Email, ID Number)',
       });
       return;
     }
@@ -183,23 +195,36 @@ export class PersonsDetailsComponent implements OnInit {
       phoneNumber: this.person.PhoneNumber?.toString() || '',
       address: this.person.Address?.trim() || '',
       activeInd: this.person.ActiveInd ?? true,
-      dateOfBirth: this.person.DateOfBirth ? new Date(this.person.DateOfBirth).toISOString() : new Date().toISOString()
+      dateOfBirth: this.person.DateOfBirth
+        ? new Date(this.person.DateOfBirth).toISOString()
+        : new Date().toISOString(),
     };
 
-    console.log('Saving person data:', personData);
-
-    const isNewPerson = !personData.personId || personData.personId === '00000000-0000-0000-0000-000000000000';
-    const apiCall = isNewPerson 
-      ? this.apiPerson.addNewPerson(personData) 
+    const isNewPerson =
+      !personData.personId ||
+      personData.personId === '00000000-0000-0000-0000-000000000000';
+    const apiCall = isNewPerson
+      ? this.apiPerson.addNewPerson(personData)
       : this.apiPerson.editPerson({ person: personData });
 
     apiCall.subscribe({
       next: (response: any) => {
-        const successMessage = isNewPerson ? 'Person added successfully' : 'Person updated successfully';
-        this.messageService.add({ 
-          severity: 'success', 
-          summary: 'Success', 
-          detail: successMessage 
+        if (response.success === false && response.errorMessage) {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: response.errorMessage,
+          });
+          return;
+        }
+
+        const successMessage = isNewPerson
+          ? 'Person added successfully'
+          : 'Person updated successfully';
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: successMessage,
         });
 
         if (isNewPerson && response?.personID) {
@@ -207,30 +232,35 @@ export class PersonsDetailsComponent implements OnInit {
           this.personID = response.personID;
         }
 
-        this.refresh();
+        this.router.navigate(['/person-list']);
       },
-      error: (error: Error) => {
-        this.messageService.add({ 
-          severity: 'error', 
-          summary: 'Error saving person', 
-          detail: error.message 
+      error: (error: any) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error saving person',
+          detail: error.message || 'An error occurred',
         });
-      }
+      },
     });
   }
-
   navigateToDetails(): void {
-    if (this.person.PersonId && this.person.PersonId !== '00000000-0000-0000-0000-000000000000') {
+    if (
+      this.person.PersonId &&
+      this.person.PersonId !== '00000000-0000-0000-0000-000000000000'
+    ) {
       this.router.navigate(['/person-list']);
     }
   }
 
   deactivatePerson(): void {
-    if (!this.personID || this.personID === '00000000-0000-0000-0000-000000000000') {
-      this.messageService.add({ 
-        severity: 'warn', 
-        summary: 'Cannot deactivate', 
-        detail: 'Person must be saved before deactivation' 
+    if (
+      !this.personID ||
+      this.personID === '00000000-0000-0000-0000-000000000000'
+    ) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Cannot deactivate',
+        detail: 'Person must be saved before deactivation',
       });
       return;
     }
@@ -243,25 +273,25 @@ export class PersonsDetailsComponent implements OnInit {
         this.apiPerson.deactivatePerson(this.personID).subscribe({
           next: () => {
             this.person.ActiveInd = false;
-            this.messageService.add({ 
-              severity: 'success', 
-              summary: 'Success', 
-              detail: 'Person successfully deactivated' 
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Success',
+              detail: 'Person successfully deactivated',
             });
             this.refresh();
           },
           error: (error: Error) => {
-            this.messageService.add({ 
-              severity: 'error', 
-              summary: 'Error deactivating person', 
-              detail: error.message 
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error deactivating person',
+              detail: error.message,
             });
-          }
+          },
         });
       },
       reject: () => {
         this.refresh();
-      }
+      },
     });
   }
 }

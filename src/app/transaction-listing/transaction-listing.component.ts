@@ -32,7 +32,6 @@ export class TransactionListingComponent implements OnInit, OnChanges {
     this.apiTransactions.getAccountTransactions(this.accountId).subscribe({
       next: (response: any) => {
         this.transaction = response;
-        console.log("🚀 ~ TransactionListComponent ~ this.apiTransactions.getAccountTransactions ~ this.transactionsList:", this.transaction)
       }
     })
   }

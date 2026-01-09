@@ -140,7 +140,6 @@ export class TransactionDialogComponent implements OnInit {
       Amount: parseFloat(this.editingTransaction.amount),
       description: this.editingTransaction.description || `Transfer to ${this.selectedPerson.firstName} ${this.selectedPerson.lastName}`
     };
-console.log(command)
     this.apiTransactions.transfer(command).subscribe({
       next: () => {
         this.messageService.add({ 
