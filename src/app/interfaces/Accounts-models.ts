@@ -16,3 +16,5 @@ export interface Account {
     IsClosed: boolean;
     ActiveInd: boolean;
   }
+
+  

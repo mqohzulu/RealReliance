@@ -1,3 +1,4 @@
+import { Account } from "./Accounts-models";
 
 
 export interface Person {
@@ -10,6 +11,7 @@ export interface Person {
     Address?: string;
     DateOfBirth: Date;
     ActiveInd: boolean;
+    Accounts?: Account[];
   }
   export interface CreatePersonCommand {
     personId:string;
@@ -21,3 +23,4 @@ export interface Person {
     activeInd: boolean;
     dateOfBirth: string; // Should be in a format parseable by C# DateTime
   }
+

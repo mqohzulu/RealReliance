@@ -176,7 +176,7 @@ export class PersonsDetailsComponent implements OnInit {
 
     const personData = {
       personId: this.person.PersonId || '00000000-0000-0000-0000-000000000000',
-      idNumber: parseInt(this.person.IdNumber?.toString() || '0'),
+      idNumber: parseInt(this.person.IdNumber),
       firstName: this.person.FirstName.trim(),
       lastName: this.person.LastName.trim(),
       email: this.person.Email.trim(),

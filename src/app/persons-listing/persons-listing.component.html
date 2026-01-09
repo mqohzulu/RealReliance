@@ -7,15 +7,12 @@
     </div>
   </div>
 
-  <!-- Main Content -->
   <div class="persons-container">
     <div class="persons-card">
-      <!-- Header Section -->
       <div class="persons-header">
         <h2 class="persons-title">Persons List</h2>
         <p class="persons-description">Manage all registered persons, filter by status, or add new entries.</p>
         
-        <!-- Action Bar -->
         <div class="action-bar">
           <button 
             pButton 
@@ -27,19 +24,45 @@
           ></button>
           
           <div class="search-filter-section">
+            <!-- Search Criteria Dropdown -->
+            <div class="search-criteria">
+              <label for="searchCriteria" class="criteria-label">Search By:</label>
+              <p-dropdown 
+                [(ngModel)]="searchCriteria" 
+                [options]="[
+                  {label: 'All Fields', value: 'all'},
+                  {label: 'ID Number', value: 'idNumber'},
+                  {label: 'Surname', value: 'surname'},
+                  {label: 'Account Number', value: 'accountNumber'}
+                ]"
+                optionLabel="label"
+                optionValue="value"
+                (onChange)="onSearchChange()"
+                styleClass="search-dropdown"
+              ></p-dropdown>
+            </div>
+
             <!-- Search Input -->
             <div class="search-box">
-            <span class="p-input-icon-left">
+              <span class="p-input-icon-left p-input-icon-right">
                 <i class="pi pi-search"></i>
                 <input 
-                pInputText
-                type="text"
-                [(ngModel)]="search"
-                placeholder="Search persons..."
-                class="search-input"
+                  pInputText
+                  type="text"
+                  [(ngModel)]="searchQuery"
+                  (ngModelChange)="onSearchChange()"
+                  placeholder="Search persons..."
+                  class="search-input"
                 />
-            </span>
+                <i 
+                  *ngIf="searchQuery" 
+                  class="pi pi-times clear-icon" 
+                  (click)="clear()"
+                  style="cursor: pointer;"
+                ></i>
+              </span>
             </div>
+
             <!-- Active Filter -->
             <div class="filter-toggle">
               <span class="filter-label">Show Active Only</span>
@@ -57,13 +80,14 @@
       <!-- Table Section -->
       <div class="table-container">
         <p-table 
-          [value]="persons" 
+          [value]="filteredPersons" 
           styleClass="persons-table"
           [paginator]="true" 
           [rows]="10"
           [showCurrentPageReport]="true"
           currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
           [rowsPerPageOptions]="[10, 25, 50]"
+          #dt1
         >
           <ng-template pTemplate="header">
             <tr>
@@ -73,49 +97,42 @@
                   <span>ID Number</span>
                   <p-sortIcon field="idNumber"></p-sortIcon>
                 </div>
-                <p-columnFilter type="text" field="idNumber" display="menu" placeholder="Filter by ID"></p-columnFilter>
               </th>
               <th pSortableColumn="firstName" style="width: 150px;">
                 <div class="column-header">
                   <span>First Name</span>
                   <p-sortIcon field="firstName"></p-sortIcon>
                 </div>
-                <p-columnFilter type="text" field="firstName" display="menu" placeholder="Filter by first name"></p-columnFilter>
               </th>
               <th pSortableColumn="lastName" style="width: 150px;">
                 <div class="column-header">
                   <span>Last Name</span>
                   <p-sortIcon field="lastName"></p-sortIcon>
                 </div>
-                <p-columnFilter type="text" field="lastName" display="menu" placeholder="Filter by last name"></p-columnFilter>
               </th>
               <th pSortableColumn="email" style="width: 220px;">
                 <div class="column-header">
                   <span>Email</span>
                   <p-sortIcon field="email"></p-sortIcon>
                 </div>
-                <p-columnFilter type="text" field="email" display="menu" placeholder="Filter by email"></p-columnFilter>
               </th>
               <th pSortableColumn="phoneNumber" style="width: 160px;">
                 <div class="column-header">
                   <span>Phone Number</span>
                   <p-sortIcon field="phoneNumber"></p-sortIcon>
                 </div>
-                <p-columnFilter type="text" field="phoneNumber" display="menu" placeholder="Filter by phone"></p-columnFilter>
               </th>
               <th pSortableColumn="dateOfBirth" style="width: 150px;">
                 <div class="column-header">
                   <span>Date of Birth</span>
                   <p-sortIcon field="dateOfBirth"></p-sortIcon>
                 </div>
-                <p-columnFilter type="date" field="dateOfBirth" display="menu"></p-columnFilter>
               </th>
               <th pSortableColumn="activeInd" style="width: 120px;">
                 <div class="column-header">
                   <span>Status</span>
                   <p-sortIcon field="activeInd"></p-sortIcon>
                 </div>
-                <p-columnFilter type="boolean" field="activeInd" display="menu"></p-columnFilter>
               </th>
             </tr>
           </ng-template>

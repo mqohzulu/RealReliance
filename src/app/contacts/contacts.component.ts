@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MessageService } from 'primeng/api';
+import { ContactService } from '../services/contact.service';
 
 @Component({
   selector: 'app-contacts',
@@ -13,7 +14,8 @@ export class ContactsComponent implements OnInit {
 
   constructor(
     private formBuilder: FormBuilder, 
-    private messageService: MessageService
+    private messageService: MessageService,
+    private contactService: ContactService
   ) {}
 
   ngOnInit(): void {
@@ -34,42 +36,17 @@ export class ContactsComponent implements OnInit {
     if (this.contactForm.valid) {
       this.isSubmitting = true;
 
-      setTimeout(() => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Message Sent Successfully',
-          detail: 'Thank you for contacting us! We will get back to you within 24 hours.',
-          life: 5000
-        });
-
-        console.log('Form submitted:', this.contactForm.value);
-        
-        this.sendEmail();
-
-        this.contactForm.reset();
-        this.isSubmitting = false;
-      }, 1500);
-
-      // In production, you would make an HTTP call like:
-      // this.contactService.submitContactForm(this.contactForm.value).subscribe(
-      //   response => {
-      //     this.messageService.add({
-      //       severity: 'success',
-      //       summary: 'Message Sent',
-      //       detail: 'We will get back to you soon!'
-      //     });
-      //     this.contactForm.reset();
-      //     this.isSubmitting = false;
-      //   },
-      //   error => {
-      //     this.messageService.add({
-      //       severity: 'error',
-      //       summary: 'Error',
-      //       detail: 'Failed to send message. Please try again.'
-      //     });
-      //     this.isSubmitting = false;
-      //   }
-      // );
+      this.contactService.submitContactForm(this.contactForm.value).subscribe({
+        next: (response) => {
+          console.log('Form submitted successfully:', response);
+          this.contactForm.reset();
+          this.isSubmitting = false;
+        },
+        error: (error) => {
+          console.error('Form submission error:', error);
+          this.isSubmitting = false;
+        }
+      });
     } else {
       Object.keys(this.contactForm.controls).forEach(key => {
         this.contactForm.get(key)?.markAsTouched();
@@ -82,19 +59,6 @@ export class ContactsComponent implements OnInit {
         life: 3000
       });
     }
-  }
-
-  private sendEmail(): void {
-    const formData = this.contactForm.value;
-    const subject = encodeURIComponent(formData.subject || 'Contact Form Submission');
-    const body = encodeURIComponent(
-      `Name: ${formData.name}\n` +
-      `Email: ${formData.email}\n` +
-      `Phone: ${formData.phone || 'Not provided'}\n\n` +
-      `Message:\n${formData.message}`
-    );
-    
-    window.location.href = `mailto:mqohzulu@outlook.com?subject=${subject}&body=${body}`;
   }
 
   hasError(fieldName: string): boolean {
