@@ -13,6 +13,7 @@ export interface Person {
     ActiveInd: boolean;
     Accounts?: Account[];
   }
+
   export interface CreatePersonCommand {
     personId:string;
     idNumber: number;

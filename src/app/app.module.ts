@@ -40,6 +40,7 @@ import { TransactionDialogComponent } from './transaction-listing/transaction-di
 import { HomeComponent } from './home/home.component';
 import { RegisterComponent } from './register/register.component';
 import { InsuficientRightsComponent } from './insuficient-rights/insuficient-rights.component';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
 
 
@@ -84,7 +85,8 @@ import { InsuficientRightsComponent } from './insuficient-rights/insuficient-rig
     CalendarModule,
     InputTextareaModule,
     DynamicDialogModule,
-    DropdownModule
+    DropdownModule,
+    ProgressSpinnerModule
   ],
   providers: [
     { provide:HTTP_INTERCEPTORS,

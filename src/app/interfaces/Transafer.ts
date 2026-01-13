@@ -1,5 +1,5 @@
 export interface TransferFundsCommand {
-    AccountFrom: string; 
+    AccountFrom: string | undefined; 
     AccountTo: string;
     Amount: number; 
     description: string;

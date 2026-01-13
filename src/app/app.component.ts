@@ -1,9 +1,10 @@
+// app.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
-import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
+import { ConfirmationService, MenuItem } from 'primeng/api';
 import { AuthenticationService } from './services/authentication.service';
-import { Subscription } from 'rxjs';
-import { filter } from 'rxjs/operators';
+import { AppStateService, User } from './services/app-state.service';
+import { Subscription, filter } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -13,76 +14,67 @@ import { filter } from 'rxjs/operators';
 export class AppComponent implements OnInit, OnDestroy {
   title = 'RealReliance Bank';
   menuItems: MenuItem[] = [];
-  authenticated: boolean = false;
-  user: any;
-  private authSubscription: Subscription | undefined;
-  private routerSubscription: Subscription | undefined;
-  isAdmin: boolean = false;
-  userName: string = '';
+  
+  private subscriptions = new Subscription();
+  
+  vm = {
+    authenticated: false,
+    user: null as User | null,
+    isAdmin: false,
+    userName: ''
+  };
 
   constructor(
     private authService: AuthenticationService,
+    private appState: AppStateService,
     private router: Router,
-    private confirmationService: ConfirmationService,
-    private messageService: MessageService
+    private confirmationService: ConfirmationService
   ) {}
 
   ngOnInit(): void {
-    this.checkAuthentication();
-    
-    this.authSubscription = this.authService.isAuthenticated$.subscribe(
-      isAuthenticated => {
-        this.authenticated = isAuthenticated;
-        this.user = this.authService.getUser();
-        this.userName = this.user?.name || this.user?.email || 'User';
-        
-        if (this.authenticated) {
-          this.buildMenu();
-        } else {
-          this.clearMenu();
-          this.redirectToLogin(); 
-        }
-      }
+    this.subscriptions.add(
+      this.appState.state$.subscribe(state => {
+        this.vm = { ...state };
+        this.menuItems = this.buildMenu();
+      })
     );
 
-    this.routerSubscription = this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
-    ).subscribe(() => {
-      this.checkAuthentication();
+    this.subscriptions.add(
+      this.authService.isAuthenticated$.subscribe(isAuthenticated => {
+        const user = isAuthenticated ? this.authService.getUser() : null;
+        this.appState.updateState({
+          authenticated: isAuthenticated,
+          user,
+          isAdmin: user?.role === 'Admin',
+          userName: user?.name || user?.email || ''
+        });
+      })
+    );
+
+    this.subscriptions.add(
+      this.router.events.pipe(
+        filter(event => event instanceof NavigationEnd)
+      ).subscribe(() => {
+        if (!this.vm.authenticated && !this.router.url.includes('/login')) {
+          this.router.navigate(['/login']);
+        }
+      })
+    );
+
+    const initialAuth = this.authService.isAuthenticated();
+    const user = initialAuth ? this.authService.getUser() : null;
+    this.appState.updateState({
+      authenticated: initialAuth,
+      user,
+      isAdmin: user?.role === 'Admin',
+      userName: user?.name || user?.email || ''
     });
   }
 
-  private checkAuthentication(): void {
-    this.authenticated = this.authService.isAuthenticated();
-    this.user = this.authService.getUser();
-    this.userName = this.user?.name || this.user?.email || 'User';
-    
-    if (this.authenticated) {
-      this.buildMenu();
-    } else {
-      this.clearMenu();
-      if (!this.router.url.includes('/login')) {
-        this.redirectToLogin();
-      }
-    }
-  }
+  private buildMenu(): MenuItem[] {
+    if (!this.vm.authenticated) return [];
 
-  private redirectToLogin(): void {
-    this.router.navigate(['/login']);
-  }
-
-  ngOnDestroy(): void {
-    if (this.authSubscription) {
-      this.authSubscription.unsubscribe();
-    }
-    if (this.routerSubscription) {
-      this.routerSubscription.unsubscribe();
-    }
-  }
-
-  private buildMenu(): void {
-    this.isAdmin = this.user?.role === 'Admin';
-    this.menuItems = [
+    return [
       { 
         label: "Home", 
         icon: "pi pi-home", 
@@ -91,7 +83,7 @@ export class AppComponent implements OnInit, OnDestroy {
       },
       { 
         label: "Persons", 
-        visible: this.isAdmin, 
+        visible: this.vm.isAdmin, 
         icon: "pi pi-users", 
         iconStyle: { color: "#0189b5" }, 
         routerLink: ["/person-list"] 
@@ -123,25 +115,18 @@ export class AppComponent implements OnInit, OnDestroy {
     ];
   }
 
-  private clearMenu(): void {
-    this.menuItems = [];
-  }
-
   logOut(): void {
     this.confirmationService.confirm({
       message: 'Are you sure you want to log out?',
       icon: 'pi pi-sign-out',
       accept: () => {
         this.authService.logout();
-        this.clearMenu();
-        this.authenticated = false;
-        this.user = null;
-        this.userName = '';
-        this.router.navigate(['/login']).then(() => {
-        });
-      },
-      reject: () => {
+        this.router.navigate(['/login']);
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
   }
 }

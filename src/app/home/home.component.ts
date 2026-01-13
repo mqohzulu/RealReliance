@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { DataService } from '../services/data.service';
 import { AuthenticationService } from '../services/authentication.service';
+import { ApiPersonService } from '../services/api-person.service';
 
 @Component({
   selector: 'app-home',
@@ -8,41 +9,83 @@ import { AuthenticationService } from '../services/authentication.service';
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent implements OnInit {
-  // Chart data objects
   chartData: any;
   doughnutData: any;
   lineData: any;
   barData: any;
   
-  // Chart options objects
   doughnutOptions: any;
   lineOptions: any;
   barOptions: any;
   
-  // Admin flag
   isAdmin: boolean = false;
+  currentPerson: any = null;
 
   constructor(
     private apichartData: DataService, 
-    private authService: AuthenticationService
+    private authService: AuthenticationService,
+    private apiPersonService: ApiPersonService
   ) {}
 
   ngOnInit(): void {
-    this.isAdmin = this.authService.getUser().role == 'Admin';
+    const user = this.authService.getUser();
+    this.isAdmin = user?.role == 'Admin';
+    
     if (this.isAdmin) {
-      this.apichartData.getChartData().subscribe(
-        data => {
-          this.setupCharts(data);
-        },
-        error => {
-          console.error('Error fetching chart data:', error);
-        }
-      );
+      this.loadAdminData();
+    } else {
+      this.loadUserData();
     }
   }
 
+  loadAdminData(): void {
+    this.apichartData.getChartData().subscribe(
+      data => {
+        this.setupCharts(data);
+      },
+      error => {
+        console.error('Error fetching chart data:', error);
+      }
+    );
+  }
+
+  loadUserData(): void {
+    const userEmail = this.authService.getUser()?.email;
+    if (!userEmail) return;
+
+    this.apiPersonService.getPersonByEmail(userEmail).subscribe({
+      next: (person: any) => {
+        if (person) {
+          this.currentPerson = person;
+          this.setupUserCharts(person);
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching user data:', error);
+      }
+    });
+  }
+
+  setupUserCharts(person: any): void {
+    const accounts = person.accounts || [];
+    const totalBalance = accounts.reduce((sum: number, acc: any) => sum + (acc.balance || 0), 0);
+    const accountCount = accounts.length;
+    
+    // Mock transaction count (you might want to fetch actual transactions)
+    const transactionCount = accounts.reduce((sum: number, acc: any) => sum + (acc.transactionCount || 0), 0);
+    
+    const userData = {
+      peopleCount: 1, // Only this user
+      accountCount: accountCount,
+      totalBalance: totalBalance,
+      totalTransactions: transactionCount,
+      totalAmount: totalBalance // For line chart
+    };
+
+    this.setupCharts(userData);
+  }
+
   setupCharts(data: any): void {
-    // Store base data for reference in template (used in stat cards and insights)
     this.chartData = {
       labels: ['People', 'Accounts', 'Transactions'],
       datasets: [
@@ -56,15 +99,15 @@ export class HomeComponent implements OnInit {
     };
 
     this.setupDoughnutChart(data);
-    
     this.setupLineChart(data);
- 
     this.setupBarChart(data);
   }
 
   private setupDoughnutChart(data: any): void {
     this.doughnutData = {
-      labels: ['People', 'Accounts', 'Transactions'],
+      labels: this.isAdmin 
+        ? ['People', 'Accounts', 'Transactions']
+        : ['My Accounts', 'Total Balance', 'Transactions'],
       datasets: [{
         data: [data.peopleCount, data.accountCount, data.totalTransactions],
         backgroundColor: [
@@ -109,13 +152,29 @@ export class HomeComponent implements OnInit {
             size: 14
           },
           callbacks: {
-            label: function(context: any) {
+            label: (context: any) => {
               const label = context.label || '';
               const value = context.parsed || 0;
               const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
               const percentage = ((value / total) * 100).toFixed(1);
+              
+              if (!this.isAdmin && label.includes('Balance')) {
+                return `${label}: R${value.toLocaleString()} (${percentage}%)`;
+              }
               return `${label}: ${value.toLocaleString()} (${percentage}%)`;
             }
+          }
+        },
+        title: {
+          display: true,
+          text: this.isAdmin ? 'System Overview' : 'My Dashboard',
+          font: {
+            size: 16,
+            weight: 'bold'
+          },
+          padding: {
+            top: 10,
+            bottom: 30
           }
         }
       },
@@ -130,7 +189,7 @@ export class HomeComponent implements OnInit {
     this.lineData = {
       labels: ['Start', 'Balance', 'Transactions'],
       datasets: [{
-        label: 'Financial Flow',
+        label: this.isAdmin ? 'Financial Flow' : 'My Financial Flow',
         data: [0, data.totalBalance, data.totalAmount],
         borderColor: 'rgb(168, 85, 247)',
         backgroundColor: 'rgba(168, 85, 247, 0.1)',
@@ -161,9 +220,21 @@ export class HomeComponent implements OnInit {
             size: 14
           },
           callbacks: {
-            label: function(context: any) {
-              return `$${context.parsed.y.toLocaleString()}`;
+            label: (context: any) => {
+              return `R${context.parsed.y.toLocaleString()}`;
             }
+          }
+        },
+        title: {
+          display: true,
+          text: this.isAdmin ? 'Financial Overview' : 'My Financial Overview',
+          font: {
+            size: 16,
+            weight: 'bold'
+          },
+          padding: {
+            top: 10,
+            bottom: 30
           }
         }
       },
@@ -175,8 +246,8 @@ export class HomeComponent implements OnInit {
             drawBorder: false
           },
           ticks: {
-            callback: function(value: any) {
-              return '$' + value.toLocaleString();
+            callback: (value: any) => {
+              return 'R' + value.toLocaleString();
             },
             font: {
               size: 12
@@ -204,10 +275,12 @@ export class HomeComponent implements OnInit {
 
   private setupBarChart(data: any): void {
     this.barData = {
-      labels: ['People', 'Accounts', 'Transactions'],
+      labels: this.isAdmin 
+        ? ['People', 'Accounts', 'Transactions']
+        : ['My Profile', 'My Accounts', 'My Transactions'],
       datasets: [
         {
-          label: 'Count',
+          label: this.isAdmin ? 'Count' : 'My Count',
           backgroundColor: 'rgba(59, 130, 246, 0.8)',
           borderColor: 'rgb(59, 130, 246)',
           borderWidth: 2,
@@ -217,7 +290,7 @@ export class HomeComponent implements OnInit {
           hoverBackgroundColor: 'rgba(59, 130, 246, 1)'
         },
         {
-          label: 'Amount ($)',
+          label: this.isAdmin ? 'Amount (R)' : 'My Amount (R)',
           backgroundColor: 'rgba(236, 72, 153, 0.8)',
           borderColor: 'rgb(236, 72, 153)',
           borderWidth: 2,
@@ -255,21 +328,32 @@ export class HomeComponent implements OnInit {
             size: 14
           },
           callbacks: {
-            label: function(context: any) {
+            label: (context: any) => {
               let label = context.dataset.label || '';
               if (label) {
                 label += ': ';
               }
               if (context.parsed.y !== null) {
                 if (context.datasetIndex === 1) {
-                  // For amount dataset, multiply back by 1000
-                  label += '$' + (context.parsed.y * 1000).toLocaleString();
+                  label += 'R' + (context.parsed.y * 1000).toLocaleString();
                 } else {
                   label += context.parsed.y.toLocaleString();
                 }
               }
               return label;
             }
+          }
+        },
+        title: {
+          display: true,
+          text: this.isAdmin ? 'System Statistics' : 'My Statistics',
+          font: {
+            size: 16,
+            weight: 'bold'
+          },
+          padding: {
+            top: 10,
+            bottom: 30
           }
         }
       },
@@ -287,13 +371,13 @@ export class HomeComponent implements OnInit {
             font: {
               size: 12
             },
-            callback: function(value: any) {
+            callback: (value: any) => {
               return value.toLocaleString();
             }
           },
           title: {
             display: true,
-            text: 'Count',
+            text: this.isAdmin ? 'Count' : 'My Count',
             font: {
               size: 13,
               weight: 'bold'
@@ -310,8 +394,8 @@ export class HomeComponent implements OnInit {
             drawBorder: false
           },
           ticks: {
-            callback: function(value: any) {
-              return '$' + (value * 1000).toLocaleString();
+            callback: (value: any) => {
+              return 'R' + (value * 1000).toLocaleString();
             },
             font: {
               size: 12
@@ -319,7 +403,7 @@ export class HomeComponent implements OnInit {
           },
           title: {
             display: true,
-            text: 'Amount ($)',
+            text: this.isAdmin ? 'Amount (R)' : 'My Amount (R)',
             font: {
               size: 13,
               weight: 'bold'

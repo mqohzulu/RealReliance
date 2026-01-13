@@ -1,9 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { Account } from 'src/app/interfaces/Accounts-models';
+import { Person } from 'src/app/interfaces/persons-models';
+import { Transaction } from 'src/app/interfaces/Transaction';
 import { ApiAccountsService } from 'src/app/services/api-accounts.service';
-import { ApiTransactionsService } from 'src/app/services/api-transactions.service';
 import { ApiPersonService } from 'src/app/services/api-person.service';
+import { ApiTransactionsService } from 'src/app/services/api-transactions.service';
+
+
 
 @Component({
   selector: 'app-transaction-dialog',
@@ -11,18 +16,19 @@ import { ApiPersonService } from 'src/app/services/api-person.service';
   styleUrls: ['./transaction-dialog.component.css']
 })
 export class TransactionDialogComponent implements OnInit {
-  editDialogVisible: boolean = false;
-  public maxDate: Date = new Date();
-  editingTransaction: any = {};
+  maxDate: Date = new Date();
+  editingTransaction: Partial<Transaction> = {};
   isEditMode: boolean = false;
 
-  public persons: any[] = [];
-  public accounts: any[] = [];
-  public selectedPersonAccounts: any[] = [];
+  persons: Person[] = [];
+  selectedPersonAccounts: Account[] = [];
   
-  selectedPerson: any = null;
-  selectedAccount: any = null;
+  selectedPerson: Person | null = null;
+  selectedAccount: Account | null = null;
   date: Date = new Date();
+
+  isLoading = false;
+  error: string | null = null;
 
   constructor(
     private apiTransactions: ApiTransactionsService,
@@ -34,39 +40,48 @@ export class TransactionDialogComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.editingTransaction = this.config.data ? { ...this.config.data } : {
-      transactionId: '',
-      accountId: '',
-      accountNumber: '',
-      amount: 0,
-      description: '',
-      transactionType: 'Transfer',
-      transactionDate: new Date()
-    };
-    
-    this.isEditMode = !!this.editingTransaction.transactionId && this.editingTransaction.transactionId !== '';
-    
-    if (this.editingTransaction.transactionDate) {
-      this.date = new Date(this.editingTransaction.transactionDate);
-    } else {
-      this.date = new Date();
-    }
-
-    this.maxDate = new Date();
+    this.initializeTransaction();
     this.getPersons();
   }
 
+  private initializeTransaction(): void {
+    if (this.config.data?.transactionId) {
+      this.editingTransaction = { ...this.config.data };
+      this.isEditMode = true;
+      if (this.editingTransaction.transactionDate) {
+        this.date = new Date(this.editingTransaction.transactionDate);
+      }
+    } else {
+      this.editingTransaction = {
+        transactionId: '',
+        accountId: '',
+        accountNumber: '',
+        amount: 0,
+        description: '',
+        transactionType: 'Transfer',
+        transactionDate: new Date()
+      };
+      this.isEditMode = false;
+    }
+  }
+
   getPersons() {
+    this.isLoading = true;
+    this.error = null;
+
     this.apiPerson.getPersonsList(true).subscribe({
-      next: (data: any[]) => {
+      next: (data: Person[]) => {
         this.persons = data
-          .filter(person => person.personID !== this.config.data?.personId) // Exclude current person if available
+          .filter(person => person.PersonId !== this.config.data?.personId)
           .map(person => ({
             ...person,
-            displayName: `${person.firstName} ${person.lastName} (${person.idNumber})`
+            displayName: `${person.FirstName} ${person.LastName} (${person.IdNumber})`
           }));
+        this.isLoading = false;
       },
       error: () => {
+        this.error = 'Failed to load persons';
+        this.isLoading = false;
         this.messageService.add({ 
           severity: 'error', 
           summary: 'Error', 
@@ -77,12 +92,14 @@ export class TransactionDialogComponent implements OnInit {
   }
 
   onPersonChange(event: any) {
-    if (event.value) {
-      this.selectedPersonAccounts = event.value.accounts?.filter(
-        (account: any) => account.activeInd === true && account.status === false
+    this.selectedPerson = event.value;
+    
+    if (this.selectedPerson) {
+      this.selectedPersonAccounts = this.selectedPerson.Accounts?.filter(
+        account => account.activeInd && !account.status
       ) || [];
       
-      this.selectedAccount = null; // Reset selected account
+      this.selectedAccount = null;
       
       if (this.selectedPersonAccounts.length === 0) {
         this.messageService.add({
@@ -98,33 +115,10 @@ export class TransactionDialogComponent implements OnInit {
   }
 
   saveTransaction() {
-    if (!this.selectedPerson) {
-      this.messageService.add({ 
-        severity: 'warn', 
-        summary: 'Validation Error', 
-        detail: 'Please select a recipient person' 
-      });
-      return;
-    }
+    if (!this.validateForm()) return;
 
-    if (!this.selectedAccount) {
-      this.messageService.add({ 
-        severity: 'warn', 
-        summary: 'Validation Error', 
-        detail: 'Please select a destination account' 
-      });
-      return;
-    }
-
-    const amount = parseFloat(this.editingTransaction.amount);
-    if (!amount || amount <= 0 || isNaN(amount)) {
-      this.messageService.add({ 
-        severity: 'warn', 
-        summary: 'Validation Error', 
-        detail: 'Please enter a valid amount greater than 0' 
-      });
-      return;
-    }
+    this.isLoading = true;
+    this.error = null;
 
     if (this.isEditMode) {
       this.updateTransaction();
@@ -133,13 +127,46 @@ export class TransactionDialogComponent implements OnInit {
     }
   }
 
+  private validateForm(): boolean {
+    if (!this.selectedPerson) {
+      this.messageService.add({ 
+        severity: 'warn', 
+        summary: 'Validation Error', 
+        detail: 'Please select a recipient person' 
+      });
+      return false;
+    }
+
+    if (!this.selectedAccount) {
+      this.messageService.add({ 
+        severity: 'warn', 
+        summary: 'Validation Error', 
+        detail: 'Please select a destination account' 
+      });
+      return false;
+    }
+
+    const amount = parseFloat(this.editingTransaction.amount?.toString() || '0');
+    if (!amount || amount <= 0 || isNaN(amount)) {
+      this.messageService.add({ 
+        severity: 'warn', 
+        summary: 'Validation Error', 
+        detail: 'Please enter a valid amount greater than 0' 
+      });
+      return false;
+    }
+
+    return true;
+  }
+
   createTransfer() {
     const command = {
-      AccountFrom: this.editingTransaction.accountNumber,
-      AccountTo: this.selectedAccount.accountNumber, 
-      Amount: parseFloat(this.editingTransaction.amount),
-      description: this.editingTransaction.description || `Transfer to ${this.selectedPerson.firstName} ${this.selectedPerson.lastName}`
+      AccountFrom: this.editingTransaction?.accountNumber,
+      AccountTo: this.selectedAccount!.accountNumber,
+      Amount: parseFloat(this.editingTransaction.amount!.toString()),
+      description: this.editingTransaction.description ||  `Transfer to ${this.selectedPerson!.FirstName} ${this.selectedPerson!.LastName}`
     };
+
     this.apiTransactions.transfer(command).subscribe({
       next: () => {
         this.messageService.add({ 
@@ -150,6 +177,7 @@ export class TransactionDialogComponent implements OnInit {
         this.ref.close(true);
       },
       error: (error: any) => {
+        this.isLoading = false;
         const errorMessage = error.error?.message || error.error || 'Transfer failed';
         this.messageService.add({ 
           severity: 'error', 
@@ -161,13 +189,14 @@ export class TransactionDialogComponent implements OnInit {
   }
 
   updateTransaction() {
-    const transaction = {
-      transactionId: this.editingTransaction.transactionId,
-      accountId: this.editingTransaction.accountId,
+    const transaction: Transaction = {
+      transactionId: this.editingTransaction.transactionId!,
+      accountId: this.editingTransaction.accountId!,
       transactionDate: this.date,
-      amount: parseFloat(this.editingTransaction.amount),
+      amount: parseFloat(this.editingTransaction.amount!.toString()),
       description: this.editingTransaction.description || '',
-      transactionType: this.editingTransaction.transactionType
+      transactionType: this.editingTransaction.transactionType!,
+      accountNumber: this.editingTransaction.accountNumber!
     };
 
     this.apiTransactions.updateTransaction(transaction).subscribe({
@@ -179,7 +208,8 @@ export class TransactionDialogComponent implements OnInit {
         });
         this.ref.close(true);
       },
-      error: (error: any) => {
+      error: () => {
+        this.isLoading = false;
         this.messageService.add({ 
           severity: 'error', 
           summary: 'Error', 
