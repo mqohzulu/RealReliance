@@ -8,10 +8,19 @@ export class ApiService {
 
   private apiURL: string;
   constructor(private http: HttpClient, @Inject('ENVIRONMENT') private environment: any) {
-    console.log("environment", environment)
-    this.apiURL = environment.apiUrl;
+    this.apiURL = this.normalizeBaseUrl(environment.apiUrl);
+  }
 
-    console.log("environment", this.apiURL)
+  private normalizeBaseUrl(baseUrl: string): string {
+    if (!baseUrl) {
+      return '';
+    }
+    return baseUrl.replace(/\/+$/, '');
+  }
+
+  private buildUrl(path: string): string {
+    const normalizedPath = path?.replace(/^\/+/, '') ?? '';
+    return `${this.apiURL}/${normalizedPath}`;
   }
 
   private getHeaders(): HttpHeaders {
@@ -37,18 +46,18 @@ export class ApiService {
         }
       }
     }
-    const _url: string = this.apiURL + "/" + url;
+    const _url: string = this.buildUrl(url);
     return this.http.get<T>(_url, { headers, params: httpParams, responseType: respType ?? "json" });
   }
 
   post<T>(url: string, data: any, respType?:any): Observable<T> {
     const headers = this.getHeaders();
-    const _url: string = this.apiURL + "/" + url;
+    const _url: string = this.buildUrl(url);
     return this.http.post<T>(_url, data, { headers, responseType: respType ?? "json" });
   }
   put<T>(url: string, data: any): Observable<T> {
     const headers = this.getHeaders();
-    const _url: string = this.apiURL + "/" + url;
+    const _url: string = this.buildUrl(url);
     return this.http.put<T>(_url, data, { headers });
   }
 
@@ -63,7 +72,7 @@ export class ApiService {
         }
       }
     }
-    const _url:string = this.apiURL + "/" + url;
+    const _url:string = this.buildUrl(url);
     return this.http.delete<T>(_url, { headers, params: httpParams });
   }
 }
