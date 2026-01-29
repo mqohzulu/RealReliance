@@ -1,4 +1,4 @@
-const apiBaseUrl = process.env.API_BASE_URL || "http://localhost:8080/api";
+const apiBaseUrl = process.env.API_BASE_URL || "https://localhost:7191/api";
 
 async function request(name, method, path, body = null, token = null) {
   const url = `${apiBaseUrl}${path}`;
