@@ -33,19 +33,11 @@ async function main() {
     message: "Testing contact endpoint from smoke-api.mjs",
   });
 
-  const randomEmail = `smoke_${Math.random().toString(16).slice(2, 10)}@test.local`;
-  const password = "Test@12345!";
-
-  await request("Auth Register", "POST", "/Authentication/register", {
-    Email: randomEmail,
-    Password: password,
-    FirstName: "Smoke",
-    LastName: "Tester",
-    Role: "Customer",
-  });
+  const email = "bob.builder@example.com";
+  const password = "pass1";
 
   const login = await request("Auth Login", "POST", "/Authentication/login", {
-    Email: randomEmail,
+    Email: email,
     Password: password,
   });
 
