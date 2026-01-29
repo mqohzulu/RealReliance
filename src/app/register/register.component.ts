@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
 import { AuthenticationService } from '../services/authentication.service';
 import { Router } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-register',
@@ -8,6 +9,7 @@ import { Router } from '@angular/router';
   styleUrls: ['./register.component.css']
 })
 export class RegisterComponent {
+  private readonly destroyRef = inject(DestroyRef);
   email: string = '';
   password: string = '';
   firstName: string = '';
@@ -22,7 +24,9 @@ export class RegisterComponent {
 
   register() {
     if (this.email && this.password && this.selectedRole) {
-      this.authService.register(this.email, this.password,this.firstName,this.lastName, this.selectedRole).subscribe({
+      this.authService.register(this.email, this.password,this.firstName,this.lastName, this.selectedRole)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
         next: (response) => {
           this.router.navigate(['/home']);
         },

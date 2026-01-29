@@ -1,28 +1,29 @@
 // app.component.ts
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, computed, DestroyRef, inject } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { ConfirmationService, MenuItem } from 'primeng/api';
 import { AuthenticationService } from './services/authentication.service';
-import { AppStateService, User } from './services/app-state.service';
-import { Subscription, filter } from 'rxjs';
+import { AppStateService } from './services/app-state.service';
+import { filter } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit, OnDestroy {
+export class AppComponent implements OnInit {
   title = 'RealReliance Bank';
-  menuItems: MenuItem[] = [];
-  
-  private subscriptions = new Subscription();
-  
-  vm = {
-    authenticated: false,
-    user: null as User | null,
-    isAdmin: false,
-    userName: ''
-  };
+  private readonly destroyRef = inject(DestroyRef);
+
+  readonly vm = computed(() => ({
+    authenticated: this.appState.authenticated(),
+    user: this.appState.user(),
+    isAdmin: this.appState.isAdmin(),
+    userName: this.appState.userName()
+  }));
+
+  readonly menuItems = computed<MenuItem[]>(() => this.buildMenu(this.vm()));
 
   constructor(
     private authService: AuthenticationService,
@@ -32,15 +33,9 @@ export class AppComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.subscriptions.add(
-      this.appState.state$.subscribe(state => {
-        this.vm = { ...state };
-        this.menuItems = this.buildMenu();
-      })
-    );
-
-    this.subscriptions.add(
-      this.authService.isAuthenticated$.subscribe(isAuthenticated => {
+    this.authService.isAuthenticated$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(isAuthenticated => {
         const user = isAuthenticated ? this.authService.getUser() : null;
         this.appState.updateState({
           authenticated: isAuthenticated,
@@ -48,18 +43,18 @@ export class AppComponent implements OnInit, OnDestroy {
           isAdmin: user?.role === 'Admin',
           userName: user?.name || user?.email || ''
         });
-      })
-    );
+      });
 
-    this.subscriptions.add(
-      this.router.events.pipe(
-        filter(event => event instanceof NavigationEnd)
-      ).subscribe(() => {
-        if (!this.vm.authenticated && !this.router.url.includes('/login')) {
+    this.router.events
+      .pipe(
+        filter(event => event instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => {
+        if (!this.vm().authenticated && !this.router.url.includes('/login')) {
           this.router.navigate(['/login']);
         }
-      })
-    );
+      });
 
     const initialAuth = this.authService.isAuthenticated();
     const user = initialAuth ? this.authService.getUser() : null;
@@ -71,8 +66,8 @@ export class AppComponent implements OnInit, OnDestroy {
     });
   }
 
-  private buildMenu(): MenuItem[] {
-    if (!this.vm.authenticated) return [];
+  private buildMenu(vm: { authenticated: boolean; isAdmin: boolean }): MenuItem[] {
+    if (!vm.authenticated) return [];
 
     return [
       { 
@@ -83,7 +78,7 @@ export class AppComponent implements OnInit, OnDestroy {
       },
       { 
         label: "Persons", 
-        visible: this.vm.isAdmin, 
+        visible: vm.isAdmin, 
         icon: "pi pi-users", 
         iconStyle: { color: "#0189b5" }, 
         routerLink: ["/person-list"] 
@@ -126,7 +121,4 @@ export class AppComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
-  }
 }

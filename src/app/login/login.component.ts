@@ -1,12 +1,13 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, DestroyRef, inject } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription, take } from 'rxjs';
+import { take } from 'rxjs';
 
 import { MessageService } from 'primeng/api';
 
 import { AuthenticationService } from '../services/authentication.service';
 import { AppStateService } from '../services/app-state.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 interface PasswordValidation {
   hasUpperCase: boolean;
@@ -21,11 +22,11 @@ interface PasswordValidation {
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
-export class LoginComponent implements OnInit, OnDestroy {
+export class LoginComponent implements OnInit {
   @ViewChild('loginForm') loginNgForm!: NgForm;
   @ViewChild('registerForm') registerNgForm!: NgForm;
 
-  private subscriptions = new Subscription();
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly roles = [
     { label: 'Customer', value: 'Customer' },
@@ -67,22 +68,22 @@ export class LoginComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.subscriptions.add(
-      this.route.queryParams.pipe(take(1)).subscribe(params => {
+    this.route.queryParams
+      .pipe(take(1))
+      .subscribe(params => {
         this.redirectUrl = params['redirectUrl'] || '/home';
-      })
-    );
+      });
 
-    this.subscriptions.add(
-      this.appState.authenticated$.subscribe(isAuthenticated => {
+    this.appState.authenticated$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(isAuthenticated => {
         this.isAuthenticated = isAuthenticated;
         if (isAuthenticated) {
           setTimeout(() => {
             this.router.navigate([this.redirectUrl]);
           }, 100);
         }
-      })
-    );
+      });
   }
 
   toggleMode(isRegister: boolean): void {
@@ -116,7 +117,9 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     this.isLoading = true;
 
-    this.authService.login(this.email, this.password).subscribe({
+    this.authService.login(this.email, this.password)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
       next: (response) => {
         this.isLoading = false;
         this.email = '';
@@ -206,7 +209,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       this.firstName,
       this.lastName,
       this.selectedRole
-    ).subscribe({
+    ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.isLoading = false;
         this.showSuccess('Registration successful! Please login.');
@@ -236,7 +239,9 @@ export class LoginComponent implements OnInit, OnDestroy {
     
     this.isLoading = true;
     
-    this.authService.forgotPassword(emailToUse).subscribe({
+    this.authService.forgotPassword(emailToUse)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
       next: () => {
         this.isLoading = false;
         this.showSuccess('If an account exists with this email, you will receive password reset instructions.');
@@ -375,7 +380,4 @@ export class LoginComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
-  }
 }

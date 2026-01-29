@@ -1,6 +1,4 @@
-<div class="card" style="margin: auto; width: 80%">
-  <div class="page_heading">Transaction's TRANSACTIONS LIST</div>
-  
+<div class="transaction-card">
   <div *ngIf="isLoading" class="loading-container">
     <p-progressSpinner></p-progressSpinner>
     <p>Loading transactions...</p>
@@ -8,17 +6,12 @@
   
   <div *ngIf="!isLoading && !error">
     <div class="table-header">
-      <div class="col-2">
-        <p-button
-          severity="success"
-          (click)="openNewTransaction()"
-          label="Add New Transaction"
-          [disabled]="!accountNumber"
-        ></p-button>
+      <div class="header-left" *ngIf="showHeader">
+        <h3 class="section-title">Transactions</h3>
       </div>
-      <div class="col-4" style="text-align: right">
-        <i class="pi pi-search"></i>
-        <span class="p-input-icon-left ml-2">
+      <div class="header-actions">
+        <span class="p-input-icon-left search-input">
+          <i class="pi pi-search"></i>
           <input
             pInputText
             [(ngModel)]="searchTransaction"
@@ -27,7 +20,19 @@
             placeholder="Search transactions..."
           />
         </span>
-        <button *ngIf="searchTransaction" pButton label="Clear" (click)="clearSearch()" class="p-button-text"></button>
+        <button
+          *ngIf="searchTransaction"
+          pButton
+          label="Clear"
+          (click)="clearSearch()"
+          class="p-button-text"
+        ></button>
+        <p-button
+          severity="success"
+          (click)="openNewTransaction()"
+          label="New Transaction"
+          [disabled]="!accountNumber"
+        ></p-button>
       </div>
     </div>
 

@@ -1,8 +1,9 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, DestroyRef, inject } from '@angular/core';
 import { Table } from 'primeng/table';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Router } from '@angular/router';
 import { ApiPersonService } from '../services/api-person.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-persons-listing',
@@ -10,6 +11,7 @@ import { ApiPersonService } from '../services/api-person.service';
   styleUrls: ['./persons-listing.component.css']
 })
 export class PersonsListingComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   personWithAccountCount: any;
   active_only: boolean = true;
   searchQuery: string = '';
@@ -35,7 +37,9 @@ export class PersonsListingComponent implements OnInit {
   }
 
   getPersonsList() {
-    this.api.getPersonsList(this.active_only).subscribe({
+    this.api.getPersonsList(this.active_only)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
       next: (response: any) => {
         this.persons = response;
         this.filteredPersons = response;
@@ -101,7 +105,9 @@ export class PersonsListingComponent implements OnInit {
   }
 
   getPersonAccountByIdAccountCount(id: number) {
-    this.api.getPersonByIdNumberAccountCount(id).subscribe({
+    this.api.getPersonByIdNumberAccountCount(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
       next: (data: any) => {
         this.personWithAccountCount = data;
       }
@@ -109,7 +115,9 @@ export class PersonsListingComponent implements OnInit {
   }
 
   deactivate(personID: any, idNumber: any) {
-    this.api.getPersonById(personID).subscribe({
+    this.api.getPersonById(personID)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
       next: (person: any) => {
         if (!person) {
           this.messageService.add({
@@ -157,7 +165,9 @@ export class PersonsListingComponent implements OnInit {
       icon: 'pi pi-exclamation-triangle',
       acceptButtonStyleClass: 'p-button-danger',
       accept: () => {
-        this.api.deletePerson(personID).subscribe({
+        this.api.deletePerson(personID)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
           next: () => {
             this.messageService.add({
               severity: 'success',

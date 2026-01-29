@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { Account } from 'src/app/interfaces/Accounts-models';
@@ -7,6 +7,7 @@ import { Transaction } from 'src/app/interfaces/Transaction';
 import { ApiAccountsService } from 'src/app/services/api-accounts.service';
 import { ApiPersonService } from 'src/app/services/api-person.service';
 import { ApiTransactionsService } from 'src/app/services/api-transactions.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 
 
@@ -16,6 +17,7 @@ import { ApiTransactionsService } from 'src/app/services/api-transactions.servic
   styleUrls: ['./transaction-dialog.component.css']
 })
 export class TransactionDialogComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   maxDate: Date = new Date();
   editingTransaction: Partial<Transaction> = {};
   isEditMode: boolean = false;
@@ -69,7 +71,9 @@ export class TransactionDialogComponent implements OnInit {
     this.isLoading = true;
     this.error = null;
 
-    this.apiPerson.getPersonsList(true).subscribe({
+    this.apiPerson.getPersonsList(true)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
       next: (data: Person[]) => {
         this.persons = data
           .filter(person => person.PersonId !== this.config.data?.personId)
@@ -167,7 +171,9 @@ export class TransactionDialogComponent implements OnInit {
       description: this.editingTransaction.description ||  `Transfer to ${this.selectedPerson!.FirstName} ${this.selectedPerson!.LastName}`
     };
 
-    this.apiTransactions.transfer(command).subscribe({
+    this.apiTransactions.transfer(command)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
       next: () => {
         this.messageService.add({ 
           severity: 'success', 
@@ -199,7 +205,9 @@ export class TransactionDialogComponent implements OnInit {
       accountNumber: this.editingTransaction.accountNumber!
     };
 
-    this.apiTransactions.updateTransaction(transaction).subscribe({
+    this.apiTransactions.updateTransaction(transaction)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
       next: () => {
         this.messageService.add({ 
           severity: 'success', 

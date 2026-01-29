@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ContactService } from '../services/contact.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-contacts',
@@ -9,6 +10,7 @@ import { ContactService } from '../services/contact.service';
   styleUrls: ['./contacts.component.css']
 })
 export class ContactsComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   contactForm!: FormGroup;
   isSubmitting: boolean = false;
 
@@ -36,7 +38,9 @@ export class ContactsComponent implements OnInit {
     if (this.contactForm.valid) {
       this.isSubmitting = true;
 
-      this.contactService.submitContactForm(this.contactForm.value).subscribe({
+      this.contactService.submitContactForm(this.contactForm.value)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
         next: (response) => {
           console.log('Form submitted successfully:', response);
           this.contactForm.reset();

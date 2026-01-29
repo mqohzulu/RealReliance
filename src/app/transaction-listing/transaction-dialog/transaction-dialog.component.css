@@ -3,7 +3,7 @@
 .transaction-dialog-wrapper {
   font-family: 'Inter', sans-serif;
   background: white;
-  border-radius: 12px;
+  border-radius: 10px;
   overflow: hidden;
   max-width: 600px;
   width: 100%;
@@ -16,6 +16,7 @@
   display: flex;
   align-items: center;
   gap: 1.25rem;
+  border-radius: 0;
 }
 
 .header-icon {
@@ -55,8 +56,12 @@
 /* Dialog Body */
 .dialog-body {
   padding: 2rem;
-  max-height: 60vh;
-  overflow-y: auto;
+  overflow: visible;
+}
+
+:host ::ng-deep .p-dialog-content {
+  overflow: hidden;
+  padding: 0;
 }
 
 /* Form Styles */
@@ -122,6 +127,15 @@
   border-radius: 8px;
   background: #f8fafc;
   transition: all 0.2s ease;
+}
+
+:host ::ng-deep .form-dropdown .p-dropdown .p-dropdown-trigger {
+  border-left: 0;
+  background: transparent;
+}
+
+:host ::ng-deep .form-dropdown .p-dropdown .p-dropdown-trigger:focus {
+  box-shadow: none;
 }
 
 :host ::ng-deep .form-dropdown .p-dropdown:not(.p-disabled):hover {

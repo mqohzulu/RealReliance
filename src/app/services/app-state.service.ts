@@ -1,6 +1,5 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Injectable, computed, signal } from '@angular/core';
+import { toObservable } from '@angular/core/rxjs-interop';
 
 export interface AppState {
   authenticated: boolean;
@@ -18,20 +17,25 @@ export interface User {
 
 @Injectable({ providedIn: 'root' })
 export class AppStateService {
-  private readonly state = new BehaviorSubject<AppState>({
+  private readonly state = signal<AppState>({
     authenticated: false,
     user: null,
     isAdmin: false,
     userName: ''
   });
 
-  readonly state$ = this.state.asObservable();
-  readonly authenticated$ = this.state$.pipe(map(s => s.authenticated));
-  readonly user$ = this.state$.pipe(map(s => s.user));
-  readonly isAdmin$ = this.state$.pipe(map(s => s.isAdmin));
-  readonly userName$ = this.state$.pipe(map(s => s.userName));
+  readonly state$ = toObservable(this.state);
+  readonly authenticated = computed(() => this.state().authenticated);
+  readonly user = computed(() => this.state().user);
+  readonly isAdmin = computed(() => this.state().isAdmin);
+  readonly userName = computed(() => this.state().userName);
+
+  readonly authenticated$ = toObservable(this.authenticated);
+  readonly user$ = toObservable(this.user);
+  readonly isAdmin$ = toObservable(this.isAdmin);
+  readonly userName$ = toObservable(this.userName);
 
   updateState(partialState: Partial<AppState>): void {
-    this.state.next({ ...this.state.value, ...partialState });
+    this.state.update(current => ({ ...current, ...partialState }));
   }
 }

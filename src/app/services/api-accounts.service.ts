@@ -34,6 +34,7 @@ export class ApiAccountsService {
         {
           next: (response: any) => {
             observer.next(response);
+            observer.complete();
           },
           error: (error: any) => {
             this.messageService.add({ severity: 'error', summary: 'Error getting account', detail: error.error });

@@ -1,4 +1,4 @@
-<p-menubar [model]="menuItems" *ngIf="vm.authenticated" class="app-menubar">
+<p-menubar [model]="menuItems()" *ngIf="vm().authenticated" class="app-menubar">
   <!-- Left: App Title -->
   <ng-template pTemplate="start">
     <div class="app-title">
@@ -12,7 +12,7 @@
       <div class="user-avatar">
         <i class="pi pi-user"></i>
       </div>
-      <span class="user-name">{{ vm.userName }}</span>
+      <span class="user-name">{{ vm().userName }}</span>
     </div>
   </ng-template>
 </p-menubar>

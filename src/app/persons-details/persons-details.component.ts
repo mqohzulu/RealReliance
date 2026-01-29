@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
 import { ApiPersonService } from '../services/api-person.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Person } from '../interfaces/persons-models';
 import { AuthenticationService } from '../services/authentication.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-persons-details',
@@ -11,6 +12,7 @@ import { AuthenticationService } from '../services/authentication.service';
   styleUrls: ['./persons-details.component.css'],
 })
 export class PersonsDetailsComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   personID: any;
   isAdmin: boolean = false;
   isMyProfile: boolean = false;
@@ -51,7 +53,9 @@ export class PersonsDetailsComponent implements OnInit {
       this.getPersonByEmail();
     } else {
       // Check for person_id in query params (for admin editing another person)
-      this.activateRoutes.queryParams.subscribe((params) => {
+      this.activateRoutes.queryParams
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((params) => {
         this.personID = params['person_id'] ?? null;
         console.log('Person ID from query:', this.personID);
 
@@ -96,7 +100,9 @@ export class PersonsDetailsComponent implements OnInit {
 
   getPersonById(): void {
     if (this.personID) {
-      this.apiPerson.getPersonById(this.personID).subscribe({
+      this.apiPerson.getPersonById(this.personID)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
         next: (data: any) => {
           this.person = {
             PersonId: data.personID,
@@ -136,7 +142,9 @@ export class PersonsDetailsComponent implements OnInit {
 
     console.log('Fetching person by email:', currentUserEmail);
 
-    this.apiPerson.getPersonByEmail(currentUserEmail).subscribe({
+    this.apiPerson.getPersonByEmail(currentUserEmail)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
       next: (data: any) => {
         this.person = {
           PersonId: data.personID,
@@ -207,7 +215,9 @@ export class PersonsDetailsComponent implements OnInit {
       ? this.apiPerson.addNewPerson(personData)
       : this.apiPerson.editPerson(personData);
 
-    apiCall.subscribe({
+    apiCall
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
       next: (response: any) => {
         if (response.success === false && response.errorMessage) {
           this.messageService.add({
@@ -268,7 +278,9 @@ export class PersonsDetailsComponent implements OnInit {
       header: 'Confirm Deactivation',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
-        this.apiPerson.deactivatePerson(idNumber).subscribe({
+        this.apiPerson.deactivatePerson(idNumber)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
           next: () => {
             this.person.ActiveInd = false;
             this.messageService.add({

@@ -1,8 +1,8 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { Account, CreateAccountCommand } from '../interfaces/Accounts-models';
 import { ApiAccountsService } from '../services/api-accounts.service';
@@ -16,7 +16,8 @@ import { UserServiceService } from '../services/user-service.service';
   styleUrls: ['./accounts-details.component.css'],
   providers: [ConfirmationService, MessageService]
 })
-export class AccountsDetailsComponent implements OnInit, OnDestroy {
+export class AccountsDetailsComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   accountID: string | null = null;
   personID: string | null = null;
   createdAccountId: string = '';
@@ -40,9 +41,6 @@ export class AccountsDetailsComponent implements OnInit, OnDestroy {
   transactionCount = 0;
   lastTransactionDate: Date | null = null;
   
-  private routeSub: Subscription | undefined;
-  private userSub: Subscription | undefined;
-
   constructor(
     private messageService: MessageService,
     private router: Router,
@@ -60,7 +58,9 @@ export class AccountsDetailsComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.checkUserRole();
     
-    this.routeSub = this.activateRoutes.queryParams.subscribe(params => {
+    this.activateRoutes.queryParams
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(params => {
       this.accountID = params["account_id"] ?? null;
       this.personID = params["person_id"] ?? null;
       
@@ -70,15 +70,6 @@ export class AccountsDetailsComponent implements OnInit, OnDestroy {
       
       this.refresh();
     });
-  }
-
-  ngOnDestroy(): void {
-    if (this.routeSub) {
-      this.routeSub.unsubscribe();
-    }
-    if (this.userSub) {
-      this.userSub.unsubscribe();
-    }
   }
 
   private createForm(): FormGroup {
@@ -108,7 +99,9 @@ export class AccountsDetailsComponent implements OnInit, OnDestroy {
       this.isAdmin = userData.role === 'Admin';
     }
 
-    this.userSub = this.userService.currentUser.subscribe(user => {
+    this.userService.currentUser
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(user => {
       if (user) {
         this.user = user;
         this.userId = user.id || user.userId;
@@ -135,7 +128,9 @@ export class AccountsDetailsComponent implements OnInit, OnDestroy {
     }
 
     this.loading = true;
-    this.apiAccount.getAccountById(this.accountID).subscribe({
+    this.apiAccount.getAccountById(this.accountID)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
       next: (data: Account) => {
         this.patchFormValues(data);
         this.loading = false;
@@ -225,7 +220,9 @@ export class AccountsDetailsComponent implements OnInit, OnDestroy {
 
   private performCloseAccount(): void {
     this.loading = true;
-    this.apiAccount.closeAccount(this.accountID!).subscribe({
+    this.apiAccount.closeAccount(this.accountID!)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
       next: (data: any) => {
         this.messageService.add({
           severity: 'success',
@@ -296,7 +293,9 @@ export class AccountsDetailsComponent implements OnInit, OnDestroy {
     this.loading = true;
     
     if (isDeactivating) {
-      this.apiAccount.deactivateAccount(this.accountID!).subscribe({
+      this.apiAccount.deactivateAccount(this.accountID!)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
         next: (data: any) => {
           this.messageService.add({
             severity: 'success',
@@ -378,7 +377,9 @@ export class AccountsDetailsComponent implements OnInit, OnDestroy {
     console.log('Sending command:', JSON.stringify(command, null, 2));
 
     this.loading = true;
-    this.apiAccount.createAccount(command).subscribe({
+    this.apiAccount.createAccount(command)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
       next: (data: string) => {
         this.createdAccountId = data;
         console.log('Account created with ID:', data);

@@ -1,10 +1,11 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, OnDestroy } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, OnDestroy, DestroyRef, inject } from '@angular/core';
 import { forkJoin } from 'rxjs';
 import { TransactionDialogComponent } from './transaction-dialog/transaction-dialog.component';
 import { ApiTransactionsService } from '../services/api-transactions.service';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { ApiAccountsService } from '../services/api-accounts.service';
 import { Transaction } from '../interfaces/Transaction';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 
 @Component({
@@ -13,7 +14,9 @@ import { Transaction } from '../interfaces/Transaction';
   styleUrls: ['./transaction-listing.component.css']
 })
 export class TransactionListingComponent implements OnInit, OnChanges, OnDestroy {
+  private readonly destroyRef = inject(DestroyRef);
   @Input() accountId: string = '';
+  @Input() showHeader: boolean = true;
   @Output() refreshAccount = new EventEmitter<void>();
 
   transactions: Transaction[] = [];
@@ -50,7 +53,9 @@ export class TransactionListingComponent implements OnInit, OnChanges, OnDestroy
     forkJoin({
       transactions: this.apiTransactions.getAccountTransactions(this.accountId),
       account: this.apiAccount.getAccountById(this.accountId)
-    }).subscribe({
+    })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
       next: ({ transactions, account }) => {
         this.transactions = transactions;
         this.filteredTransactions = [...transactions];
@@ -108,11 +113,13 @@ export class TransactionListingComponent implements OnInit, OnChanges, OnDestroy
 
     this.ref = this.dialogService.open(TransactionDialogComponent, {
       data: transaction,
-      header: edit ? 'Edit Transaction' : 'New Transaction',
-      width: '500px'
+      showHeader: false,
+      width: '680px'
     });
 
-    this.ref.onClose.subscribe((shouldRefresh: boolean) => {
+    this.ref.onClose
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((shouldRefresh: boolean) => {
       if (shouldRefresh) {
         this.loadData();
         this.refreshAccount.emit();

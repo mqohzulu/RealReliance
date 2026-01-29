@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
 import { DataService } from '../services/data.service';
 import { AuthenticationService } from '../services/authentication.service';
 import { ApiPersonService } from '../services/api-person.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-home',
@@ -9,6 +10,7 @@ import { ApiPersonService } from '../services/api-person.service';
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   chartData: any;
   doughnutData: any;
   lineData: any;
@@ -39,7 +41,9 @@ export class HomeComponent implements OnInit {
   }
 
   loadAdminData(): void {
-    this.apichartData.getChartData().subscribe(
+    this.apichartData.getChartData()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(
       data => {
         this.setupCharts(data);
       },
@@ -53,7 +57,9 @@ export class HomeComponent implements OnInit {
     const userEmail = this.authService.getUser()?.email;
     if (!userEmail) return;
 
-    this.apiPersonService.getPersonByEmail(userEmail).subscribe({
+    this.apiPersonService.getPersonByEmail(userEmail)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
       next: (person: any) => {
         if (person) {
           this.currentPerson = person;

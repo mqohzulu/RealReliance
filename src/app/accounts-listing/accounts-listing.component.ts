@@ -1,7 +1,8 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, SimpleChanges, DestroyRef, inject } from '@angular/core';
 import { ApiAccountsService } from '../services/api-accounts.service';
 import { Router } from '@angular/router';
 import { ApiPersonService } from '../services/api-person.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-accounts-listing',
@@ -9,6 +10,7 @@ import { ApiPersonService } from '../services/api-person.service';
   styleUrls: ['./accounts-listing.component.css']
 })
 export class AccountsListingComponent implements OnInit,OnChanges {
+  private readonly destroyRef = inject(DestroyRef);
   accounts: any[] = [];
   searchAccount: string = '';
   public person: any;
@@ -56,16 +58,20 @@ export class AccountsListingComponent implements OnInit,OnChanges {
 
   private getPersonById(): void {
     if (this.personID && this.personID !=='00000000-0000-0000-0000-000000000000') {
-      this.apiPerson.getPersonById(this.personID).subscribe((person: any) => {
-        this.person = person;
-      });
+      this.apiPerson.getPersonById(this.personID)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((person: any) => {
+          this.person = person;
+        });
     }
   }
    getAccountsByPersonId(): void {
     if (this.personID && this.personID !== '00000000-0000-0000-0000-000000000000') {
-      this.apiAccounts.getAccountsByPersonId(this.personID).subscribe((accounts: any) => {
-        this.accounts = accounts;
-      });
+      this.apiAccounts.getAccountsByPersonId(this.personID)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((accounts: any) => {
+          this.accounts = accounts;
+        });
     }
   }
   openEdit(account_id:string){

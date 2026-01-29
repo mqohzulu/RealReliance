@@ -186,13 +186,14 @@
       <div class="right-column" *ngIf="account.accountID">
         <div class="transactions-card">
           <div class="card-header">
-            <h2 class="card-title">Transactions</h2>
-            <p class="card-description">Manage account transactions</p>
+            <h2 class="card-title transactions-title">Transactions</h2>
+            <p class="card-description transactions-subtitle">Manage account transactions</p>
           </div>
 
           <div class="transactions-content">
             <app-transaction-listing
               [accountId]="account.accountID"
+              [showHeader]="false"
               (refreshAccount)="refresh()"
             >
             </app-transaction-listing>
