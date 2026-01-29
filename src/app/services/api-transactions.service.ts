@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { TransferFundsCommand, UpdateTransactionCommand } from '../interfaces/Transafer';
+import { CreateTransactionCommand, TransferFundsCommand, UpdateTransactionCommand } from '../interfaces/Transafer';
 import { ApiService } from './api.service';
 import { MessageService } from 'primeng/api';
 
@@ -68,7 +68,7 @@ export class ApiTransactionsService {
   }
   getTransactionDetails(id:string): Observable<any> {
     return new Observable(observer => {
-      this.api.get<any>('Transaction/GetAccountTransactions', { id: id }).subscribe({
+      this.api.get<any>('Transaction/GetTransaction', { id: id }).subscribe({
         next: (response: any) => {
           observer.next(response);
           observer.complete();
@@ -78,6 +78,25 @@ export class ApiTransactionsService {
             severity: 'error',
             summary: 'Error getting transactions',
             detail: error.error
+          });
+          observer.error(error);
+        }
+      });
+    });
+  }
+
+  createTransaction(command: CreateTransactionCommand): Observable<any> {
+    return new Observable(observer => {
+      this.api.post<any>('Transaction/Create', command).subscribe({
+        next: (response: any) => {
+          observer.next(response);
+          observer.complete();
+        },
+        error: (error: any) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error creating transaction',
+            detail: error.error?.message || error.error
           });
           observer.error(error);
         }

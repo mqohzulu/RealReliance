@@ -10,8 +10,8 @@
 ## Default expectations
 - Be concise; propose a plan for non-trivial changes.
 - Prefer `rg` for searching.
-- Don’t run destructive commands (`git reset --hard`, `rm -rf`) unless asked.
-- Don’t revert unrelated changes.
+- Don't run destructive commands (`git reset --hard`, `rm -rf`) unless asked.
+- Don't revert unrelated changes.
 
 ## Frontend conventions
 - Framework: Angular

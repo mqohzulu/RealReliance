@@ -205,7 +205,7 @@ export class PersonsDetailsComponent implements OnInit {
       personData.personId === '00000000-0000-0000-0000-000000000000';
     const apiCall = isNewPerson
       ? this.apiPerson.addNewPerson(personData)
-      : this.apiPerson.editPerson({ person: personData });
+      : this.apiPerson.editPerson(personData);
 
     apiCall.subscribe({
       next: (response: any) => {
@@ -253,14 +253,12 @@ export class PersonsDetailsComponent implements OnInit {
   }
 
   deactivatePerson(): void {
-    if (
-      !this.personID ||
-      this.personID === '00000000-0000-0000-0000-000000000000'
-    ) {
+    const idNumber = parseInt(this.person.IdNumber);
+    if (!idNumber || Number.isNaN(idNumber)) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Cannot deactivate',
-        detail: 'Person must be saved before deactivation',
+        detail: 'Person must have a valid ID number before deactivation',
       });
       return;
     }
@@ -270,7 +268,7 @@ export class PersonsDetailsComponent implements OnInit {
       header: 'Confirm Deactivation',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
-        this.apiPerson.deactivatePerson(this.personID).subscribe({
+        this.apiPerson.deactivatePerson(idNumber).subscribe({
           next: () => {
             this.person.ActiveInd = false;
             this.messageService.add({

@@ -30,7 +30,7 @@ export class ApiPersonService {
   };
   editPerson(model: any): Observable<any> {
     return new Observable(observer => {
-      this.api.put<any>("Persons/EditPerson", { command: model }).subscribe(
+      this.api.put<any>("Persons", model).subscribe(
         {
           next: (response: any) => {
             observer.next(response);
@@ -46,9 +46,9 @@ export class ApiPersonService {
       );
     });
   }
-  deactivatePerson(personId: any): Observable<any> {
+  deactivatePerson(idNumber: any): Observable<any> {
     return new Observable(observer => {
-      const payload = { personId: personId };  
+      const payload = { IdNumber: idNumber };
       this.api.delete<any>("Persons/DeletePerson", payload).subscribe(
         {
           next: (response: any) => {
@@ -142,6 +142,28 @@ export class ApiPersonService {
           },
           error: (error: any) => {
             this.messageService.add({ severity: 'error', summary: 'Error deleting person', detail: error.error });
+            observer.error(error);
+
+          },
+        }
+      );
+    }
+    )
+  };
+
+  searchPersons(idNumber?: number, lastName?: string, accountNumber?: string): Observable<any> {
+    return new Observable(observer => {
+      this.api.get<any>("Persons/Search", {
+        idNumber: idNumber,
+        lastName: lastName,
+        accountNumber: accountNumber
+      }).subscribe(
+        {
+          next: (response: any) => {
+            observer.next(response);
+          },
+          error: (error: any) => {
+            this.messageService.add({ severity: 'error', summary: 'Error searching persons', detail: error.error });
             observer.error(error);
 
           },

@@ -103,8 +103,8 @@ export class ApiAccountsService {
   }
   deactivateAccount(accountId: string): Observable<any> {
     return new Observable(observer => {
-      const payload = { accountId: accountId };  
-      this.api.post<any>('Accounts/DeleteAccount', payload).subscribe({
+      const params = { accountId: accountId };
+      this.api.delete<any>('Accounts/DeleteAccount', params).subscribe({
         next: (response: any) => {
           observer.next(response);
           observer.complete();
