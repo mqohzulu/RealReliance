@@ -32,9 +32,13 @@
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2.5rem;
+}
+
+.stats-grid-secondary {
+  margin-top: -0.5rem;
 }
 
 .stat-card {
@@ -84,12 +88,17 @@
   color: white;
 }
 
+.stat-card-neutral .stat-icon {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  color: white;
+}
+
 .stat-content {
   flex: 1;
 }
 
 .stat-value {
-  font-size: 2rem;
+  font-size: 1.4rem;
   font-weight: 700;
   color: #1e293b;
   margin: 0 0 0.25rem 0;
@@ -105,7 +114,7 @@
 
 .charts-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2.5rem;
 }
@@ -156,6 +165,70 @@
 .chart-wrapper {
   height: 350px;
   position: relative;
+}
+
+.data-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.data-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.75rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.data-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.data-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0.5rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.data-row:last-child {
+  border-bottom: none;
+}
+
+.row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.row-title {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.row-subtitle {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.row-value {
+  text-align: right;
+  font-weight: 600;
+  color: #0f172a;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.row-date {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 500;
 }
 
 .insights-section {
@@ -211,10 +284,6 @@
 }
 
 @media (max-width: 1024px) {
-  .charts-grid {
-    grid-template-columns: 1fr;
-  }
-  
   .chart-card-wide {
     grid-column: 1;
   }

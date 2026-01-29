@@ -61,7 +61,7 @@
         </td>
         <td>{{ account.accountNumber }}</td>
         <td>{{ account.accountType }}</td>
-        <td>{{ account.balance | currency : "ZAR" : "symbol" }}</td>
+        <td>{{ account.balance | currency:'ZAR':'symbol' }}</td>
         <td>
           <p-checkbox
             [disabled]="true"

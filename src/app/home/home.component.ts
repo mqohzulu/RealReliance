@@ -2,6 +2,8 @@ import { Component, OnInit, DestroyRef, inject } from '@angular/core';
 import { DataService } from '../services/data.service';
 import { AuthenticationService } from '../services/authentication.service';
 import { ApiPersonService } from '../services/api-person.service';
+import { ApiTransactionsService } from '../services/api-transactions.service';
+import { catchError, forkJoin, of, take } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
@@ -15,6 +17,18 @@ export class HomeComponent implements OnInit {
   doughnutData: any;
   lineData: any;
   barData: any;
+  trendData: any;
+  typeData: any;
+  debitCreditData: any;
+  tableTransactions: any[] = [];
+  topAccounts: Array<{ accountNumber: string; balance: number; type?: string }> = [];
+  metrics: {
+    peopleCount: number;
+    accountCount: number;
+    totalTransactions: number;
+    totalBalance: number;
+    totalAmount: number;
+  } | null = null;
   
   doughnutOptions: any;
   lineOptions: any;
@@ -26,7 +40,8 @@ export class HomeComponent implements OnInit {
   constructor(
     private apichartData: DataService, 
     private authService: AuthenticationService,
-    private apiPersonService: ApiPersonService
+    private apiPersonService: ApiPersonService,
+    private apiTransactionsService: ApiTransactionsService
   ) {}
 
   ngOnInit(): void {
@@ -41,11 +56,14 @@ export class HomeComponent implements OnInit {
   }
 
   loadAdminData(): void {
-    this.apichartData.getChartData()
+    this.apichartData.getDashboardData()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(
-      data => {
-        this.setupCharts(data);
+      ({ people, accounts, transactions }) => {
+        const metrics = this.buildMetrics(people, accounts, transactions);
+        this.metrics = metrics;
+        this.setupCharts(metrics);
+        this.setupExtraVisuals(accounts, transactions);
       },
       error => {
         console.error('Error fetching chart data:', error);
@@ -57,41 +75,59 @@ export class HomeComponent implements OnInit {
     const userEmail = this.authService.getUser()?.email;
     if (!userEmail) return;
 
-    this.apiPersonService.getPersonByEmail(userEmail)
+    forkJoin({
+      person: this.apiPersonService.getPersonByEmail(userEmail).pipe(take(1)),
+      transactions: this.apiTransactionsService.getTransactions(true).pipe(
+        take(1),
+        catchError(() => of([]))
+      )
+    })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-      next: (person: any) => {
-        if (person) {
+        next: ({ person, transactions }) => {
+          if (!person) return;
           this.currentPerson = person;
-          this.setupUserCharts(person);
+          const accounts = person.accounts || [];
+          const accountNumbers = new Set(
+            accounts.map((a: any) => a.accountNumber ?? a.AccountNumber).filter(Boolean)
+          );
+          const filtered = (transactions || []).filter((t: any) => {
+            const acc = t.accountNumber ?? t.AccountNumber;
+            return accountNumbers.has(acc);
+          });
+          const metrics = this.buildMetrics([person], accounts, filtered);
+          this.metrics = metrics;
+          this.setupCharts(metrics);
+          this.setupExtraVisuals(accounts, filtered);
+        },
+        error: (error) => {
+          console.error('Error fetching user data:', error);
         }
-      },
-      error: (error) => {
-        console.error('Error fetching user data:', error);
-      }
-    });
+      });
   }
 
-  setupUserCharts(person: any): void {
-    const accounts = person.accounts || [];
-    const totalBalance = accounts.reduce((sum: number, acc: any) => sum + (acc.balance || 0), 0);
-    const accountCount = accounts.length;
-    
-    // Mock transaction count (you might want to fetch actual transactions)
-    const transactionCount = accounts.reduce((sum: number, acc: any) => sum + (acc.transactionCount || 0), 0);
-    
-    const userData = {
-      peopleCount: 1, // Only this user
-      accountCount: accountCount,
-      totalBalance: totalBalance,
-      totalTransactions: transactionCount,
-      totalAmount: totalBalance // For line chart
+  private buildMetrics(people: any[], accounts: any[], transactions: any[]) {
+    const totalBalance = accounts.reduce(
+      (sum: number, acc: any) => sum + (acc.balance ?? acc.Balance ?? 0),
+      0
+    );
+    const totalTransactions = transactions.length;
+    const totalAmount = transactions.reduce((sum: number, t: any) => {
+      const amount = t.amount ?? t.Amount ?? 0;
+      const type = t.transactionType ?? t.TransactionType ?? '';
+      return sum + (type === 'Credit' ? amount : -amount);
+    }, 0);
+
+    return {
+      peopleCount: Number(people.length),
+      accountCount: Number(accounts.length),
+      totalTransactions: Number(totalTransactions),
+      totalBalance: Number(totalBalance),
+      totalAmount: Number(totalAmount)
     };
-
-    this.setupCharts(userData);
   }
 
-  setupCharts(data: any): void {
+  setupCharts(data: { peopleCount: number; accountCount: number; totalTransactions: number; totalBalance: number; totalAmount: number; }): void {
     this.chartData = {
       labels: ['People', 'Accounts', 'Transactions'],
       datasets: [
@@ -429,5 +465,120 @@ export class HomeComponent implements OnInit {
         }
       }
     };
+  }
+
+  private setupExtraVisuals(accounts: any[], transactions: any[]): void {
+    this.trendData = this.buildMonthlyTrend(transactions);
+    this.debitCreditData = this.buildDebitCredit(transactions);
+    this.typeData = this.buildTypeBreakdown(transactions);
+    this.topAccounts = this.buildTopAccounts(accounts);
+    this.tableTransactions = this.buildRecentTransactions(transactions);
+  }
+
+  private buildMonthlyTrend(transactions: any[]): any {
+    const now = new Date();
+    const labels: string[] = [];
+    const totals: number[] = [];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      labels.push(d.toLocaleString('en-ZA', { month: 'short' }));
+      const monthTotal = transactions.reduce((sum, t) => {
+        const dateVal = t.transactionDate ?? t.TransactionDate;
+        const dt = dateVal ? new Date(dateVal) : null;
+        if (!dt) return sum;
+        const tKey = `${dt.getFullYear()}-${dt.getMonth()}`;
+        if (tKey !== key) return sum;
+        const amount = t.amount ?? t.Amount ?? 0;
+        return sum + Math.abs(amount);
+      }, 0);
+      totals.push(monthTotal);
+    }
+
+    return {
+      labels,
+      datasets: [
+        {
+          label: 'Monthly Volume (R)',
+          data: totals,
+          borderColor: '#0ea5e9',
+          backgroundColor: 'rgba(14, 165, 233, 0.15)',
+          fill: true,
+          tension: 0.35,
+          borderWidth: 3,
+          pointRadius: 4,
+          pointHoverRadius: 6
+        }
+      ]
+    };
+  }
+
+  private buildDebitCredit(transactions: any[]): any {
+    const totals = transactions.reduce(
+      (acc, t) => {
+        const amount = t.amount ?? t.Amount ?? 0;
+        const type = (t.transactionType ?? t.TransactionType ?? '').toLowerCase();
+        if (type === 'credit') acc.credit += amount;
+        else acc.debit += amount;
+        return acc;
+      },
+      { credit: 0, debit: 0 }
+    );
+
+    return {
+      labels: ['Credit', 'Debit'],
+      datasets: [
+        {
+          data: [totals.credit, totals.debit],
+          backgroundColor: ['rgba(16, 185, 129, 0.85)', 'rgba(239, 68, 68, 0.85)'],
+          borderColor: ['#10b981', '#ef4444'],
+          borderWidth: 2
+        }
+      ]
+    };
+  }
+
+  private buildTypeBreakdown(transactions: any[]): any {
+    const counts: Record<string, number> = { Credit: 0, Debit: 0, Transfer: 0 };
+    transactions.forEach(t => {
+      const type = (t.transactionType ?? t.TransactionType ?? 'Transfer') as string;
+      if (!counts[type]) counts[type] = 0;
+      counts[type] += 1;
+    });
+
+    return {
+      labels: Object.keys(counts),
+      datasets: [
+        {
+          data: Object.values(counts),
+          backgroundColor: ['#22c55e', '#f97316', '#6366f1'],
+          borderWidth: 0
+        }
+      ]
+    };
+  }
+
+  private buildTopAccounts(accounts: any[]): Array<{ accountNumber: string; balance: number; type?: string }> {
+    return accounts
+      .map(acc => ({
+        accountNumber: acc.accountNumber ?? acc.AccountNumber ?? '',
+        balance: acc.balance ?? acc.Balance ?? 0,
+        type: acc.accountType ?? acc.AccountType
+      }))
+      .sort((a, b) => b.balance - a.balance)
+      .slice(0, 5);
+  }
+
+  private buildRecentTransactions(transactions: any[]): any[] {
+    return [...transactions]
+      .map(t => ({
+        id: t.transactionId ?? t.TransactionId ?? '',
+        amount: t.amount ?? t.Amount ?? 0,
+        type: t.transactionType ?? t.TransactionType ?? '',
+        date: t.transactionDate ?? t.TransactionDate ?? null,
+        description: t.description ?? t.Description ?? ''
+      }))
+      .sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime())
+      .slice(0, 5);
   }
 }

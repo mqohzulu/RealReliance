@@ -79,7 +79,7 @@
           <td>{{ transaction.transactionId }}</td>
           <td>{{ transaction.transactionDate | date: 'short' }}</td>
           <td>{{ transaction.transactionType }}</td>
-          <td>{{ transaction.amount | currency: 'ZAR' }}</td>
+          <td>{{ transaction.amount | currency:'ZAR':'symbol' }}</td>
           <td>{{ transaction.description }}</td>
         </tr>
       </ng-template>
