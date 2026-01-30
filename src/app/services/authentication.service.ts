@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { BehaviorSubject, catchError, Observable, switchMap, tap, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, filter, finalize, map, Observable, switchMap, take, tap, throwError } from 'rxjs';
 import { LocalStorageService } from './local-storage.service';
 import { MessageService } from 'primeng/api';
 import { Router } from '@angular/router';
@@ -16,7 +16,10 @@ export class AuthenticationService {
   public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
   private readonly CHANNEL_NAME = 'auth_channel';
   private readonly authChannel: BroadcastChannel;
-  private tokenKey = 'token';
+  private readonly tokenKey = 'token';
+  private readonly refreshTokenKey = 'refreshToken';
+  private refreshInProgress = false;
+  private refreshTokenSubject = new BehaviorSubject<string | null>(null);
   public user: any | undefined;
   apiUrl: any;
 
@@ -44,27 +47,15 @@ export class AuthenticationService {
       const url = `${this.apiUrl}/Authentication/login`;
       this.http.post(url, data).pipe(
         tap(response => console.log('Login response:', response)),
-        catchError((error: HttpErrorResponse) => {  
-          let errorMessage = 'An unknown error occurred';
+        catchError(this.handleHttpError('Login Failed', (error: HttpErrorResponse) => {
           if (error.error instanceof ErrorEvent) {
-            errorMessage = `Client-side error: ${error.error.message}`;
-          } else if(error.status == 401){
-            errorMessage = `Incorrect Username or Password`;
-          } else {
-            errorMessage = `Server-side error: ${error.status} ${error.statusText}`;
-            if (error.status === 0) {
-              errorMessage += '\nPossible causes: Server is down, Network issue, or CORS problem';
-            }
+            return `Client-side error: ${error.error.message}`;
           }
-  
-          this.messageService.add({ 
-            severity: 'error', 
-            summary: 'Login Failed', 
-            detail: errorMessage 
-          });
-  
-          return throwError(() => new Error(errorMessage));
-        })
+          if (error.status === 401) {
+            return 'Incorrect Username or Password';
+          }
+          return this.buildServerErrorMessage(error);
+        }))
       ).subscribe({
         next: (response: any) => {
           if (response) {
@@ -77,6 +68,10 @@ export class AuthenticationService {
         
             this.localStorageService.setItem('LogginUser', JSON.stringify(userData));
             this.saveToken(response.token.trim());
+            if (response.refreshToken) {
+              this.saveRefreshToken(response.refreshToken);
+            }
+            this.saveExpiresFromToken(response.token);
             this.saveUser(response.email, response.firstName, response.lastname, response.role);
             this.isAuthenticatedSubject.next(true);
             
@@ -129,13 +124,40 @@ export class AuthenticationService {
     return this.localStorageService.getItem(this.tokenKey);
   }
 
+  saveRefreshToken(refreshToken: string): void {
+    this.localStorageService.setItem(this.refreshTokenKey, refreshToken);
+  }
+
+  getRefreshToken(): string | null {
+    return this.localStorageService.getItem(this.refreshTokenKey);
+  }
+
+  private saveExpiresFromToken(token: string): void {
+    const expiryDate = this.getTokenExpiryDate(token);
+    if (expiryDate) {
+      this.saveExpires(expiryDate.getTime());
+    }
+  }
+
+  private getTokenExpiryDate(token: string): Date | null {
+    try {
+      const decoded = jwtDecode<{ exp?: number }>(token);
+      if (decoded?.exp) {
+        return new Date(decoded.exp * 1000);
+      }
+    } catch (error) {
+      return null;
+    }
+    return null;
+  }
+
   public isAuthenticated(): boolean {
     const user = this.getUser();
-    const expires = this.getExpires();
-    if(this.hasTokenExpired()){
+    const hasExpired = this.hasTokenExpired();
+    if (hasExpired) {
       this.logout();
     }
-    return user != null && !this.hasTokenExpired();
+    return user != null && !hasExpired;
   }
 
   getExpires(): any | null {
@@ -150,6 +172,16 @@ export class AuthenticationService {
       if (expiryDate) {
         const currentTimestamp = Date.now();
         ret = (expiryDate <= currentTimestamp);
+      } else {
+        const token = this.getToken();
+        if (token) {
+          const tokenExpiry = this.getTokenExpiryDate(token);
+          if (tokenExpiry) {
+            const tokenExpiryTimestamp = tokenExpiry.getTime();
+            this.saveExpires(tokenExpiryTimestamp);
+            ret = tokenExpiryTimestamp <= Date.now();
+          }
+        }
       }
     } catch (error) {
       ret = true;
@@ -159,6 +191,75 @@ export class AuthenticationService {
 
   saveExpires(expires: Date | any): void {
     this.localStorageService.setItem('expires', expires);
+  }
+
+  isTokenExpiringSoon(thresholdSeconds: number = 120): boolean {
+    const expiryDate: Date | any = this.getExpires();
+    const currentTimestamp = Date.now();
+    if (expiryDate) {
+      return (expiryDate - currentTimestamp) <= thresholdSeconds * 1000;
+    }
+
+    const token = this.getToken();
+    if (!token) {
+      return false;
+    }
+
+    const tokenExpiry = this.getTokenExpiryDate(token);
+    if (!tokenExpiry) {
+      return false;
+    }
+
+    const tokenExpiryTimestamp = tokenExpiry.getTime();
+    this.saveExpires(tokenExpiryTimestamp);
+    return (tokenExpiryTimestamp - currentTimestamp) <= thresholdSeconds * 1000;
+  }
+
+  refreshAccessToken(): Observable<string> {
+    const refreshToken = this.getRefreshToken();
+
+    if (!refreshToken) {
+      return throwError(() => new Error('No refresh token available'));
+    }
+
+    if (this.refreshInProgress) {
+      return this.refreshTokenSubject.pipe(
+        filter((token): token is string => token !== null),
+        take(1)
+      );
+    }
+
+    this.refreshInProgress = true;
+    this.refreshTokenSubject.next(null);
+
+    const url = `${this.apiUrl}/Authentication/refresh-token`;
+    return this.http.post<any>(url, { refreshToken }).pipe(
+      tap((response: any) => {
+        if (response?.token) {
+          this.saveToken(response.token.trim());
+          this.saveExpiresFromToken(response.token);
+        }
+        if (response?.refreshToken) {
+          this.saveRefreshToken(response.refreshToken);
+        }
+        if (response?.token) {
+          this.refreshTokenSubject.next(response.token);
+        }
+      }),
+      map((response: any) => {
+        if (!response?.token) {
+          throw new Error('Invalid refresh token response');
+        }
+        return response.token as string;
+      }),
+      catchError((error: HttpErrorResponse) => {
+        this.logout();
+        return throwError(() => error);
+      }),
+      finalize(() => {
+        this.refreshInProgress = false;
+      })
+    );
   }
 
   logout(): void {
@@ -200,27 +301,15 @@ export class AuthenticationService {
       this.http.post(url, data).pipe(
         tap(response => console.log('Registration response:', response)),
         switchMap(() => this.login(email, password)),
-        catchError((error: HttpErrorResponse) => {
-          let errorMessage = 'An unknown error occurred';
+        catchError(this.handleHttpError('Registration Failed', (error: HttpErrorResponse) => {
           if (error.error instanceof ErrorEvent) {
-            errorMessage = `Client-side error: ${error.error.message}`;
-          } else if (error.status === 409) {
-            errorMessage = 'An account with this email already exists.';
-          } else {
-            errorMessage = `Server-side error: ${error.status} ${error.statusText}`;
-            if (error.status === 0) {
-              errorMessage += '\nPossible causes: Server is down, Network issue, or CORS problem';
-            }
+            return `Client-side error: ${error.error.message}`;
           }
-
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Registration Failed',
-            detail: errorMessage
-          });
-
-          return throwError(() => new Error(errorMessage));
-        })
+          if (error.status === 409) {
+            return 'An account with this email already exists.';
+          }
+          return this.buildServerErrorMessage(error);
+        }))
       ).subscribe({
         next: (response: any) => {
           if (response) {
@@ -252,32 +341,21 @@ export class AuthenticationService {
       
       this.http.post(url, data).pipe(
         tap(response => console.log('Forgot password response:', response)),
-        catchError((error: HttpErrorResponse) => {
-          let errorMessage = 'An unknown error occurred';
-          
+        catchError(this.handleHttpError('Password Reset Failed', (error: HttpErrorResponse) => {
           if (error.error instanceof ErrorEvent) {
-            errorMessage = `Client-side error: ${error.error.message}`;
-          } else if (error.status === 404) {
-            errorMessage = 'No account found with this email address';
-          } else if (error.status === 429) {
-            errorMessage = 'Too many password reset attempts. Please try again later.';
-          } else if (error.status === 400) {
-            errorMessage = error.error?.message || 'Invalid email format';
-          } else {
-            errorMessage = `Server-side error: ${error.status} ${error.statusText}`;
-            if (error.status === 0) {
-              errorMessage += '\nPossible causes: Server is down, Network issue, or CORS problem';
-            }
+            return `Client-side error: ${error.error.message}`;
           }
-
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Password Reset Failed',
-            detail: errorMessage
-          });
-
-          return throwError(() => new Error(errorMessage));
-        })
+          if (error.status === 404) {
+            return 'No account found with this email address';
+          }
+          if (error.status === 429) {
+            return 'Too many password reset attempts. Please try again later.';
+          }
+          if (error.status === 400) {
+            return error.error?.message || 'Invalid email format';
+          }
+          return this.buildServerErrorMessage(error);
+        }))
       ).subscribe({
         next: (response: any) => {
           this.messageService.add({
@@ -308,27 +386,18 @@ export class AuthenticationService {
       
       this.http.post(url, data).pipe(
         tap(response => console.log('Reset password response:', response)),
-        catchError((error: HttpErrorResponse) => {
-          let errorMessage = 'An unknown error occurred';
-          
+        catchError(this.handleHttpError('Password Reset Failed', (error: HttpErrorResponse) => {
           if (error.error instanceof ErrorEvent) {
-            errorMessage = `Client-side error: ${error.error.message}`;
-          } else if (error.status === 400) {
-            errorMessage = error.error?.message || 'Invalid or expired reset token';
-          } else if (error.status === 401) {
-            errorMessage = 'Password reset token has expired. Please request a new one.';
-          } else {
-            errorMessage = `Server-side error: ${error.status} ${error.statusText}`;
+            return `Client-side error: ${error.error.message}`;
           }
-
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Password Reset Failed',
-            detail: errorMessage
-          });
-
-          return throwError(() => new Error(errorMessage));
-        })
+          if (error.status === 400) {
+            return error.error?.message || 'Invalid or expired reset token';
+          }
+          if (error.status === 401) {
+            return 'Password reset token has expired. Please request a new one.';
+          }
+          return `Server-side error: ${error.status} ${error.statusText}`;
+        }))
       ).subscribe({
         next: (response: any) => {
           this.messageService.add({
@@ -376,27 +445,18 @@ export class AuthenticationService {
       
       this.http.post(url, data, { headers }).pipe(
         tap(response => console.log('Change password response:', response)),
-        catchError((error: HttpErrorResponse) => {
-          let errorMessage = 'An unknown error occurred';
-          
+        catchError(this.handleHttpError('Change Password Failed', (error: HttpErrorResponse) => {
           if (error.error instanceof ErrorEvent) {
-            errorMessage = `Client-side error: ${error.error.message}`;
-          } else if (error.status === 400) {
-            errorMessage = error.error?.message || 'Invalid current password';
-          } else if (error.status === 401) {
-            errorMessage = 'Your session has expired. Please login again.';
-          } else {
-            errorMessage = `Server-side error: ${error.status} ${error.statusText}`;
+            return `Client-side error: ${error.error.message}`;
           }
-
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Change Password Failed',
-            detail: errorMessage
-          });
-
-          return throwError(() => new Error(errorMessage));
-        })
+          if (error.status === 400) {
+            return error.error?.message || 'Invalid current password';
+          }
+          if (error.status === 401) {
+            return 'Your session has expired. Please login again.';
+          }
+          return `Server-side error: ${error.status} ${error.statusText}`;
+        }))
       ).subscribe({
         next: (response: any) => {
           this.messageService.add({
@@ -413,5 +473,30 @@ export class AuthenticationService {
         }
       });
     });
+  }
+
+  private handleHttpError(
+    summary: string,
+    messageBuilder: (error: HttpErrorResponse) => string
+  ) {
+    return (error: HttpErrorResponse) => {
+      const errorMessage = messageBuilder(error) || 'An unknown error occurred';
+
+      this.messageService.add({
+        severity: 'error',
+        summary,
+        detail: errorMessage
+      });
+
+      return throwError(() => new Error(errorMessage));
+    };
+  }
+
+  private buildServerErrorMessage(error: HttpErrorResponse): string {
+    let message = `Server-side error: ${error.status} ${error.statusText}`;
+    if (error.status === 0) {
+      message += '\nPossible causes: Server is down, Network issue, or CORS problem';
+    }
+    return message;
   }
 }

@@ -1,29 +1,57 @@
 import { HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from "@angular/common/http";
 import { Injectable } from "@angular/core";
-import { catchError, Observable, throwError } from "rxjs";
-import { AuthenticationService } from "./authentication.service";
 import { Router } from "@angular/router";
+import { catchError, Observable, switchMap, throwError } from "rxjs";
+import { AuthenticationService } from "./authentication.service";
 
 @Injectable()
 export class AuthenticationInterceptor implements HttpInterceptor {
-  
   constructor(
     private authService: AuthenticationService,
     private router: Router
   ) {}
   
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const token = localStorage.getItem('token');
-
-    if (token) {
-      const processedToken = token.replace(/^"|"$/g, '').trim(); 
-      req = req.clone({       
-        setHeaders: {
-          Authorization: `Bearer ${processedToken}` 
-        }
-      });
+    if (this.isRefreshTokenRequest(req)) {
+      return this.handleRequest(req, next);
     }
 
+    const token = this.getStoredToken();
+    if (!token) {
+      return this.handleRequest(req, next);
+    }
+
+    if (this.authService.isTokenExpiringSoon()) {
+      return this.authService.refreshAccessToken().pipe(
+        switchMap((newToken) => {
+          const refreshedRequest = this.addAuthHeader(req, newToken);
+          return this.handleRequest(refreshedRequest, next);
+        })
+      );
+    }
+
+    const authRequest = this.addAuthHeader(req, token);
+    return this.handleRequest(authRequest, next);
+  }
+
+  private getStoredToken(): string | null {
+    return localStorage.getItem('token');
+  }
+
+  private isRefreshTokenRequest(req: HttpRequest<any>): boolean {
+    return req.url.includes('/Authentication/refresh-token');
+  }
+
+  private addAuthHeader(req: HttpRequest<any>, token: string): HttpRequest<any> {
+    const processedToken = token.replace(/^"|"$/g, '').trim();
+    return req.clone({
+      setHeaders: {
+        Authorization: `Bearer ${processedToken}`
+      }
+    });
+  }
+
+  private handleRequest(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     return next.handle(req).pipe(
       catchError((error: HttpErrorResponse) => {
         if (error.status === 401) {
