@@ -1,0 +1,60 @@
+.accounts-card {
+  width: 100%;
+  margin: 0;
+}
+
+.table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+  padding-left: 0.25rem;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-left: auto;
+  padding-right: 0.25rem;
+}
+
+.search-input {
+  width: 260px;
+}
+
+:host ::ng-deep .search-input .p-inputtext {
+  width: 100%;
+  padding-left: 2.25rem;
+}
+
+.table-scroll {
+  overflow: auto;
+  max-height: 70vh;
+  width: 100%;
+}
+
+:host ::ng-deep .table-scroll .p-datatable {
+  min-width: 720px;
+}
+
+@media (max-width: 768px) {
+  .header-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .search-input {
+    width: 100%;
+  }
+}

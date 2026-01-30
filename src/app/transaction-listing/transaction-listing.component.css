@@ -1,5 +1,6 @@
 .transaction-card {
   width: 100%;
+  margin: 0;
 }
 
 .table-header {
@@ -35,6 +36,16 @@
 :host ::ng-deep .search-input .p-inputtext {
   width: 100%;
   padding-left: 2.25rem;
+}
+
+.table-scroll {
+  overflow: auto;
+  max-height: 70vh;
+  width: 100%;
+}
+
+:host ::ng-deep .table-scroll .p-datatable {
+  min-width: 720px;
 }
 
 .loading-container {
